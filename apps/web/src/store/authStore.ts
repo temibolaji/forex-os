@@ -17,7 +17,7 @@ interface AuthState {
   checkSession: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>()((set, get) => ({
   currentUser: null,
   error: null,
   isLoading: true, // Start true while we check session on load
@@ -62,7 +62,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
       
       // Auto login after register
-      return await useAuthStore.getState().login(email, password);
+      return await get().login(email, password);
     } catch (err) {
       set({ error: 'Network error occurred. Please try again.', isLoading: false });
       return false;
