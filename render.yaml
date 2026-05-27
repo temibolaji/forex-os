@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: forexos-api
+    env: node
+    buildCommand: npm install && npm run build --workspace=api
+    startCommand: npm run start --workspace=api
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: COOKIE_SECRET
+        sync: false
