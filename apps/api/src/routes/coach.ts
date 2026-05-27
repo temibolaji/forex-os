@@ -23,7 +23,7 @@ export default async function coachRoutes(server: FastifyInstance) {
       const { message } = request.body as any;
 
       // Check if it's the dummy key used in the prompt
-      if (process.env.GEMINI_API_KEY === 'AIzaSyDu5X9tYXlw2rBQS3_BF8MutGLBRZczR3s' || !process.env.GEMINI_API_KEY) {
+      if (process.env.GEMINI_API_KEY === 'DUMMY_GEMINI_API_KEY_FALLBACK' || !process.env.GEMINI_API_KEY) {
         // Return mock coach response
         return reply.send({
           reply: `**Mock AI Coach Mode**\n\nI see you asked: "${message}".\n\nSince you are using the local mock environment without a valid Gemini API key, I am returning a simulated response! To get real AI insights based on your actual journal data, please provide a valid Google Gemini API key in your \`.env\` file.`,
