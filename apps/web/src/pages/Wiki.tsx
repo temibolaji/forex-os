@@ -798,15 +798,15 @@ export default function Wiki() {
   return (
     <div className="p-4 md:p-8 max-w-5xl mx-auto animate-in fade-in duration-500">
       {/* Header Banner */}
-      <div className="mb-8 relative overflow-hidden bg-gradient-to-r from-brand to-brand-dark p-8 md:p-10 rounded-3xl text-white shadow-lg">
+      <div className="mb-8 relative overflow-hidden bg-gradient-to-r from-indigo-600 to-indigo-900 p-8 md:p-10 rounded-3xl text-white shadow-lg font-inter">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-16 -mt-16 pointer-events-none blur-3xl"></div>
         <div className="relative z-10">
           <div className="flex items-center space-x-2 bg-white/10 w-fit px-3 py-1 rounded-full text-xs font-semibold mb-3 tracking-wide">
-            <Book size={14} className="text-brand-light animate-pulse" />
+            <Book size={14} className="text-indigo-200 animate-pulse" />
             <span>Forex Knowledge Base</span>
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">Forex Wiki</h1>
-          <p className="text-brand-light/80 mt-2 max-w-xl text-sm md:text-base leading-relaxed">
+          <p className="text-indigo-100/80 mt-2 max-w-xl text-sm md:text-base leading-relaxed">
             Your pocket encyclopedia for trading terminology. Browse professional definitions, clear real-world examples, and proven pro-tips.
           </p>
         </div>
@@ -816,13 +816,13 @@ export default function Wiki() {
         {/* Main Wiki Directory */}
         <div className="lg:col-span-2 space-y-6">
           {/* Search & Category Layout */}
-          <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+          <div className="bg-white p-4 md:p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
             <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
               <input
                 type="text"
                 placeholder="Search terms, concepts, or rules..."
-                className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white transition-all text-slate-800 placeholder-slate-400"
+                className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-slate-800 placeholder-slate-400 font-medium"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -836,7 +836,7 @@ export default function Wiki() {
                   onClick={() => setActiveCategory(cat)}
                   className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${
                     activeCategory === cat
-                      ? 'bg-brand text-white shadow-sm shadow-brand/20'
+                      ? 'bg-indigo-600 text-white shadow-md'
                       : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
                   }`}
                 >
@@ -860,8 +860,8 @@ export default function Wiki() {
                 return (
                   <div
                     key={item.term}
-                    className={`bg-white rounded-2xl border border-slate-100 shadow-sm transition-all duration-300 overflow-hidden hover:shadow-md ${
-                      isExpanded ? 'ring-2 ring-brand/20 border-brand/20' : ''
+                    className={`bg-white rounded-3xl border border-slate-200 shadow-sm transition-all duration-300 overflow-hidden hover:shadow-md ${
+                      isExpanded ? 'ring-2 ring-indigo-500/20 border-indigo-500/20' : ''
                     }`}
                   >
                     {/* Header trigger */}
@@ -892,7 +892,7 @@ export default function Wiki() {
                       <ChevronRight
                         size={20}
                         className={`text-slate-400 transition-transform duration-300 ${
-                          isExpanded ? 'rotate-90 text-brand' : ''
+                          isExpanded ? 'rotate-90 text-indigo-600' : ''
                         }`}
                       />
                     </button>
@@ -903,7 +903,7 @@ export default function Wiki() {
                         {/* Definition */}
                         <div className="space-y-1.5">
                           <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                            <Compass size={14} className="text-brand" /> Definition
+                            <Compass size={14} className="text-indigo-600" /> Definition
                           </h4>
                           <p className="text-slate-700 leading-relaxed font-medium">{item.definition}</p>
                         </div>
@@ -999,7 +999,7 @@ export default function Wiki() {
                 <button
                   onClick={submitQuiz}
                   disabled={!selectedQuizOption}
-                  className="w-full bg-brand hover:bg-brand-light disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-xl transition-all text-sm mt-2 shadow-md shadow-brand/10 active:scale-95"
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-xl transition-all text-sm mt-2 shadow-md shadow-indigo-500/10 active:scale-95"
                 >
                   Submit Answer
                 </button>
@@ -1026,21 +1026,21 @@ export default function Wiki() {
           </div>
 
           {/* Quick Study Tip */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
             <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <ShieldAlert className="text-brand shrink-0" size={18} /> How to Study Terms
+              <ShieldAlert className="text-indigo-600 shrink-0" size={18} /> How to Study Terms
             </h3>
             <ul className="text-sm text-slate-600 space-y-3 font-medium">
               <li className="flex items-start gap-2">
-                <span className="text-brand font-bold">•</span>
+                <span className="text-indigo-600 font-bold">•</span>
                 <span>Don't memorize definitions literally; focus on their application in a live chart.</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-brand font-bold">•</span>
+                <span className="text-indigo-600 font-bold">•</span>
                 <span>Learn one high-impact fundamental announcement (like NFP) at a time to prevent confusion.</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-brand font-bold">•</span>
+                <span className="text-indigo-600 font-bold">•</span>
                 <span>Apply risk limits (SL/TP) on every demo transaction before trading real capital.</span>
               </li>
             </ul>

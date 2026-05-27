@@ -121,7 +121,7 @@ export default function Simulator() {
   }, [results, startingBalance, tradesCount]);
 
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto animate-in fade-in duration-500">
+    <div className="p-4 md:p-8 max-w-5xl mx-auto animate-in fade-in duration-500 font-inter">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Drawdown Simulator</h1>
         <p className="text-slate-500 mt-1 font-medium">Stress-test your edge and visualize equity fluctuations using Monte Carlo methods.</p>
@@ -137,7 +137,7 @@ export default function Simulator() {
               <label className="block text-sm font-bold text-slate-700 mb-2">Starting Balance ($)</label>
               <input
                 type="number"
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand focus:border-brand focus:bg-white transition-all font-bold text-slate-800 outline-none"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white transition-all font-bold text-slate-800 outline-none"
                 value={startingBalance}
                 onChange={(e) => setStartingBalance(e.target.value)}
               />
@@ -149,7 +149,7 @@ export default function Simulator() {
                 <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Win Rate (%)</label>
                 <input
                   type="number"
-                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand focus:bg-white transition-all font-bold text-slate-800 outline-none text-sm"
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-bold text-slate-800 outline-none text-sm"
                   value={winRate}
                   onChange={(e) => setWinRate(e.target.value)}
                 />
@@ -158,7 +158,7 @@ export default function Simulator() {
                 <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Avg Win ($)</label>
                 <input
                   type="number"
-                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand focus:bg-white transition-all font-bold text-slate-800 outline-none text-sm"
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-bold text-slate-800 outline-none text-sm"
                   value={avgWin}
                   onChange={(e) => setAvgWin(e.target.value)}
                 />
@@ -167,7 +167,7 @@ export default function Simulator() {
                 <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Avg Loss ($)</label>
                 <input
                   type="number"
-                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand focus:bg-white transition-all font-bold text-slate-800 outline-none text-sm"
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-bold text-slate-800 outline-none text-sm"
                   value={avgLoss}
                   onChange={(e) => setAvgLoss(e.target.value)}
                 />
@@ -180,7 +180,7 @@ export default function Simulator() {
                 <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Trades per Sim</label>
                 <input
                   type="number"
-                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand focus:bg-white transition-all font-bold text-slate-800 outline-none text-sm"
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-bold text-slate-800 outline-none text-sm"
                   value={tradesCount}
                   onChange={(e) => setTradesCount(e.target.value)}
                 />
@@ -189,7 +189,7 @@ export default function Simulator() {
                 <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Iterations</label>
                 <input
                   type="number"
-                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand focus:bg-white transition-all font-bold text-slate-800 outline-none text-sm"
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-bold text-slate-800 outline-none text-sm"
                   value={iterations}
                   onChange={(e) => setIterations(e.target.value)}
                 />
@@ -203,7 +203,7 @@ export default function Simulator() {
             <button
               onClick={runSimulation}
               disabled={isRunning}
-              className="w-full mt-4 flex justify-center items-center space-x-2 py-3.5 px-4 bg-brand hover:bg-brand-dark text-white rounded-xl shadow transition-transform active:scale-[0.98] font-bold disabled:opacity-70 disabled:pointer-events-none cursor-pointer"
+              className="w-full mt-4 flex justify-center items-center space-x-2 py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow transition-transform active:scale-[0.98] font-bold disabled:opacity-70 disabled:pointer-events-none cursor-pointer"
             >
               {isRunning ? (
                 <>

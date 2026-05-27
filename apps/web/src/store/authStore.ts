@@ -1,103 +1,104 @@
 import { create } from 'zustand';
 
 export interface User {
+  id: string;
   email: string;
-  currency: string;
-  registeredAt: string;
-  passwordHash: string; // stored for local verification
+  currency?: string;
 }
 
 interface AuthState {
   currentUser: User | null;
-  usersList: User[];
   error: string | null;
-  login: (email: string, password: string) => boolean;
-  register: (email: string, password: string, currency: string) => boolean;
-  logout: () => void;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<boolean>;
+  register: (email: string, password: string, currency: string) => Promise<boolean>;
+  logout: () => Promise<void>;
   clearError: () => void;
+  checkSession: () => Promise<void>;
 }
 
-// Helper to load state from localStorage
-const loadUsers = (): User[] => {
-  try {
-    const raw = localStorage.getItem('forexos_users');
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-};
-
-const loadSession = (): User | null => {
-  try {
-    const raw = localStorage.getItem('forexos_current_user');
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-};
-
-export const useAuthStore = create<AuthState>((set, get) => ({
-  currentUser: loadSession(),
-  usersList: loadUsers(),
+export const useAuthStore = create<AuthState>((set) => ({
+  currentUser: null,
   error: null,
+  isLoading: true, // Start true while we check session on load
 
-  login: (email, password) => {
-    set({ error: null });
-    const trimmedEmail = email.trim().toLowerCase();
-    const users = get().usersList;
-    
-    const user = users.find(u => u.email === trimmedEmail);
-    if (!user) {
-      set({ error: 'No account found with this email address.' });
+  login: async (email, password) => {
+    set({ error: null, isLoading: true });
+    try {
+      const res = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
+      });
+      
+      const data = await res.json();
+      if (!res.ok) {
+        set({ error: data.message || 'Login failed', isLoading: false });
+        return false;
+      }
+      
+      localStorage.setItem('forexos_token', data.accessToken);
+      set({ currentUser: data.user, isLoading: false });
+      return true;
+    } catch (err) {
+      set({ error: 'Network error occurred. Please try again.', isLoading: false });
       return false;
     }
-    
-    if (user.passwordHash !== password) {
-      set({ error: 'Incorrect password. Please try again.' });
-      return false;
-    }
-
-    // Set active user session
-    localStorage.setItem('forexos_current_user', JSON.stringify(user));
-    set({ currentUser: user });
-    return true;
   },
 
-  register: (email, password, currency) => {
-    set({ error: null });
-    const trimmedEmail = email.trim().toLowerCase();
-    const users = [...get().usersList];
-
-    // Enforce account duplication check
-    if (users.some(u => u.email === trimmedEmail)) {
-      set({ error: 'An account with this email already exists.' });
+  register: async (email, password, currency) => {
+    set({ error: null, isLoading: true });
+    try {
+      const res = await fetch('/api/v1/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password, accountCurrency: currency }),
+      });
+      
+      const data = await res.json();
+      if (!res.ok) {
+        set({ error: data.message || 'Registration failed', isLoading: false });
+        return false;
+      }
+      
+      // Auto login after register
+      return await useAuthStore.getState().login(email, password);
+    } catch (err) {
+      set({ error: 'Network error occurred. Please try again.', isLoading: false });
       return false;
     }
-
-    // ENFORCE CAP OF 10 USERS FOR FREE RESOURCES
-    if (users.length >= 10) {
-      set({ error: 'Registration cap reached! This terminal is strictly limited to 10 users for free hosting efficiency.' });
-      return false;
-    }
-
-    const newUser: User = {
-      email: trimmedEmail,
-      currency,
-      registeredAt: new Date().toISOString(),
-      passwordHash: password // simple local persistence
-    };
-
-    users.push(newUser);
-    localStorage.setItem('forexos_users', JSON.stringify(users));
-    localStorage.setItem('forexos_current_user', JSON.stringify(newUser));
-    
-    set({ usersList: users, currentUser: newUser });
-    return true;
   },
 
-  logout: () => {
-    localStorage.removeItem('forexos_current_user');
-    set({ currentUser: null, error: null });
+  logout: async () => {
+    set({ isLoading: true });
+    try {
+      await fetch('/api/v1/auth/logout', { method: 'POST' });
+    } catch(e) {}
+    localStorage.removeItem('forexos_token');
+    set({ currentUser: null, error: null, isLoading: false });
+  },
+
+  checkSession: async () => {
+    set({ isLoading: true });
+    try {
+      const res = await fetch('/api/v1/auth/refresh', { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        localStorage.setItem('forexos_token', data.accessToken);
+        
+        // We need the user payload from the token
+        try {
+          const payload = JSON.parse(atob(data.accessToken.split('.')[1]));
+          set({ currentUser: { id: payload.sub, email: payload.email }, isLoading: false });
+        } catch(e) {
+          set({ currentUser: null, isLoading: false });
+        }
+      } else {
+        set({ currentUser: null, isLoading: false });
+      }
+    } catch (err) {
+      set({ currentUser: null, isLoading: false });
+    }
   },
 
   clearError: () => set({ error: null })

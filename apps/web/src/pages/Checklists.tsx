@@ -62,7 +62,7 @@ export default function Checklists() {
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto animate-in fade-in duration-500">
+    <div className="p-4 md:p-8 max-w-5xl mx-auto animate-in fade-in duration-500 font-inter">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Trade Checklists</h1>
@@ -71,7 +71,7 @@ export default function Checklists() {
         {!isEditing && (
           <button
             onClick={startNewTemplate}
-            className="flex items-center space-x-2 bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-light transition-colors shadow-md"
+            className="flex items-center space-x-2 bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 transition-colors shadow-md font-bold"
           >
             <Plus size={18} />
             <span>New Template</span>
@@ -80,10 +80,10 @@ export default function Checklists() {
       </div>
 
       {isEditing ? (
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 md:p-8 animate-in slide-in-from-bottom-4 duration-300">
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 md:p-8 animate-in slide-in-from-bottom-4 duration-300">
           <input
             type="text"
-            className="text-2xl font-bold text-slate-900 w-full mb-6 outline-none border-b border-transparent hover:border-slate-200 focus:border-brand pb-2 bg-transparent transition-colors"
+            className="text-2xl font-bold text-slate-900 w-full mb-6 outline-none border-b border-transparent hover:border-slate-200 focus:border-indigo-500 pb-2 bg-transparent transition-colors"
             value={editName}
             onChange={(e) => setEditName(e.target.value)}
             placeholder="Template Name"
@@ -100,14 +100,14 @@ export default function Checklists() {
                   value={rule.text}
                   onChange={(e) => updateRule(rule.id, 'text', e.target.value)}
                 />
-                <label className="flex items-center space-x-2 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm">
+                <label className="flex items-center space-x-2 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm transition-all hover:border-indigo-200">
                   <input
                     type="checkbox"
-                    className="rounded text-brand focus:ring-brand accent-brand"
+                    className="rounded text-indigo-600 focus:ring-indigo-500 accent-indigo-600"
                     checked={rule.required}
                     onChange={(e) => updateRule(rule.id, 'required', e.target.checked)}
                   />
-                  <span className="text-xs font-semibold text-slate-600 uppercase">Required</span>
+                  <span className="text-xs font-bold text-slate-600 uppercase">Required</span>
                 </label>
                 <button
                   onClick={() => removeRule(rule.id)}
@@ -122,7 +122,7 @@ export default function Checklists() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <button
               onClick={addRule}
-              className="flex items-center space-x-2 text-brand font-medium hover:text-brand-light px-3 py-2 rounded-lg hover:bg-brand/5 transition-colors"
+              className="flex items-center space-x-2 text-indigo-600 font-bold hover:text-indigo-700 px-3 py-2 rounded-xl hover:bg-indigo-50 transition-colors"
             >
               <Plus size={18} />
               <span>Add Rule</span>
@@ -130,13 +130,13 @@ export default function Checklists() {
             <div className="flex space-x-3 w-full sm:w-auto">
               <button
                 onClick={() => setIsEditing(false)}
-                className="flex-1 sm:flex-none px-6 py-2 border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors font-medium"
+                className="flex-1 sm:flex-none px-6 py-2 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors font-bold"
               >
                 Cancel
               </button>
               <button
                 onClick={saveTemplate}
-                className="flex-1 sm:flex-none flex justify-center items-center space-x-2 px-6 py-2 bg-gradient-to-r from-brand to-brand-light text-white rounded-lg shadow-md hover:shadow-lg transition-all font-medium transform active:scale-95"
+                className="flex-1 sm:flex-none flex justify-center items-center space-x-2 px-6 py-2 bg-indigo-600 text-white rounded-xl shadow-md hover:shadow-lg hover:bg-indigo-700 transition-all font-bold transform active:scale-95"
               >
                 <Save size={18} />
                 <span>Save Template</span>
@@ -147,10 +147,10 @@ export default function Checklists() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {templates.map(template => (
-            <div key={template.id} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow group">
-              <div className="p-6 bg-slate-50 border-b border-slate-100 flex items-center space-x-3">
-                <div className="bg-brand/10 p-2 rounded-lg">
-                  <CheckSquare size={20} className="text-brand" />
+            <div key={template.id} className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow group">
+              <div className="p-6 bg-slate-50/50 border-b border-slate-100 flex items-center space-x-3">
+                <div className="bg-indigo-100 p-2 rounded-xl">
+                  <CheckSquare size={20} className="text-indigo-600" />
                 </div>
                 <h3 className="font-bold text-slate-900 text-lg">{template.name}</h3>
               </div>
@@ -159,7 +159,7 @@ export default function Checklists() {
                   {template.rules.map(rule => (
                     <div key={rule.id} className="flex items-start space-x-3 text-sm">
                       {rule.required ? (
-                        <ShieldAlert size={16} className="text-rose-400 shrink-0 mt-0.5" />
+                        <ShieldAlert size={16} className="text-rose-500 shrink-0 mt-0.5" />
                       ) : (
                         <div className="w-4 h-4 shrink-0 rounded border border-slate-300 mt-0.5"></div>
                       )}
@@ -171,7 +171,7 @@ export default function Checklists() {
                 </div>
                 <button 
                   onClick={() => editTemplate(template.id)}
-                  className="w-full mt-6 text-sm font-semibold text-brand bg-brand/5 hover:bg-brand hover:text-white py-2 rounded-lg transition-colors border border-brand/10 group-hover:border-transparent"
+                  className="w-full mt-6 text-sm font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white py-2 rounded-xl transition-colors border border-indigo-100 group-hover:border-transparent"
                 >
                   Edit Template
                 </button>

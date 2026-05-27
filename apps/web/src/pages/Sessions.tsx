@@ -233,7 +233,7 @@ export default function Sessions() {
                 <span className="text-xs font-bold text-slate-500">24 Hour Time</span>
                 <button 
                   onClick={() => setIs24Hour(!is24Hour)}
-                  className={`w-10 h-5 rounded-full transition-colors relative focus:outline-none ${is24Hour ? 'bg-brand' : 'bg-slate-200'}`}
+                  className={`w-10 h-5 rounded-full transition-colors relative focus:outline-none ${is24Hour ? 'bg-indigo-600' : 'bg-slate-200'}`}
                 >
                   <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 shadow transition-all ${is24Hour ? 'left-5.5' : 'left-0.5'}`}></div>
                 </button>
@@ -252,7 +252,7 @@ export default function Sessions() {
                     <select 
                       value={selectedTz}
                       onChange={(e) => setSelectedTz(e.target.value)}
-                      className="w-full bg-brand text-white font-bold text-xs py-2 px-3 rounded-lg border-none shadow-sm cursor-pointer outline-none appearance-none hover:bg-brand-light transition-all pr-8"
+                      className="w-full bg-indigo-600 text-white font-bold text-xs py-2 px-3 rounded-lg border-none shadow-sm cursor-pointer outline-none appearance-none hover:bg-indigo-700 transition-all pr-8"
                     >
                       {TIMEZONES.map((tz) => (
                         <option key={tz.name} value={tz.name} className="bg-white text-slate-800">{tz.name}</option>
@@ -291,11 +291,11 @@ export default function Sessions() {
                 
                 {/* FULL-HEIGHT VERTICAL TIMELINE LINE AND PIN MARKER */}
                 <div 
-                  className="absolute top-0 bottom-0 w-0.5 bg-brand z-20 pointer-events-none transition-all duration-75 flex flex-col items-center"
+                  className="absolute top-0 bottom-0 w-0.5 bg-indigo-600 z-20 pointer-events-none transition-all duration-75 flex flex-col items-center"
                   style={{ left: `calc(10rem + ${((activeHour / 23) * 100) * 0.77}%)` }}
                 >
                   {/* Teardrop Pin at the top */}
-                  <div className="bg-brand text-white rounded-3xl rounded-br-none rotate-45 w-14 h-14 absolute -top-16 -translate-x-1/2 flex flex-col items-center justify-center shadow-lg border border-white/20 select-none">
+                  <div className="bg-indigo-600 text-white rounded-3xl rounded-br-none rotate-45 w-14 h-14 absolute -top-16 -translate-x-1/2 flex flex-col items-center justify-center shadow-lg border border-white/20 select-none">
                     <div className="-rotate-45 flex flex-col items-center justify-center space-y-0.5 mt-1">
                       <Clock size={10} className="text-white/80" />
                       <span className="text-[10px] font-black leading-none">{formattedPinTime}</span>
@@ -335,7 +335,7 @@ export default function Sessions() {
                           </div>
                           <div className="min-w-0">
                             <div className="text-xs font-black text-slate-800 leading-none">{city.name}</div>
-                            <div className="text-[10px] font-extrabold text-brand mt-0.5 leading-none">{city.timeStr}</div>
+                            <div className="text-[10px] font-extrabold text-indigo-600 mt-0.5 leading-none">{city.timeStr}</div>
                             <div className="text-[8px] font-semibold text-slate-400 mt-0.5 leading-tight truncate">{city.dateStr}</div>
                           </div>
                         </div>
@@ -345,7 +345,7 @@ export default function Sessions() {
                           {/* Open status badge text above session bar */}
                           <div className="absolute top-1 left-2 text-[8px] font-black tracking-wider flex items-center space-x-1.5">
                             <span className={`w-1.5 h-1.5 rounded-full ${city.isOpen ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`}></span>
-                            <span className={city.isOpen ? 'text-brand' : 'text-slate-400'}>
+                            <span className={city.isOpen ? 'text-indigo-600' : 'text-slate-400'}>
                               {city.name.toUpperCase()} SESSION {city.isOpen ? 'OPEN' : 'CLOSED'}
                             </span>
                           </div>
@@ -408,7 +408,7 @@ export default function Sessions() {
 
             {/* Premium Utility Alert Box */}
             <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl flex items-center space-x-3 select-none">
-              <div className="w-8 h-8 rounded-full bg-brand/10 border border-brand/20 flex items-center justify-center text-brand shrink-0 font-bold">
+              <div className="w-8 h-8 rounded-full bg-indigo-600/10 border border-indigo-600/20 flex items-center justify-center text-indigo-600 shrink-0 font-bold">
                 💡
               </div>
               <p className="text-xs text-slate-700 font-semibold leading-snug">
@@ -421,7 +421,7 @@ export default function Sessions() {
           {/* SECTION 1: How to use the converter */}
           <div className="bg-white rounded-2xl border border-slate-200/80 p-6 md:p-8 space-y-4 shadow-sm">
             <h3 className="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2 select-none">
-              <Layers className="text-brand" size={18} />
+              <Layers className="text-indigo-600" size={18} />
               <span>How to use the Forex Market Time Zone Converter</span>
             </h3>
             <div className="text-slate-600 text-xs leading-relaxed space-y-3 font-semibold">
@@ -441,7 +441,7 @@ export default function Sessions() {
           <div className="bg-white rounded-2xl border border-slate-200/80 p-6 md:p-8 space-y-6 shadow-sm">
             <div className="space-y-2">
               <h3 className="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2 select-none">
-                <Clock className="text-brand" size={18} />
+                <Clock className="text-indigo-600" size={18} />
                 <span>The Three Major Trading Sessions Explained</span>
               </h3>
               <p className="text-slate-600 text-xs leading-relaxed font-semibold">
@@ -491,7 +491,7 @@ export default function Sessions() {
           <div className="bg-white rounded-2xl border border-slate-200/80 p-6 md:p-8 space-y-6 shadow-sm">
             <div className="space-y-2">
               <h3 className="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2 select-none">
-                <BarChart3 className="text-brand" size={18} />
+                <BarChart3 className="text-indigo-600" size={18} />
                 <span>Forex Trading Volume & Overlap Statistics</span>
               </h3>
               <p className="text-slate-600 text-xs leading-relaxed font-semibold">
@@ -552,7 +552,7 @@ export default function Sessions() {
           <div className="bg-white rounded-2xl border border-slate-200/80 p-6 md:p-8 space-y-6 shadow-sm">
             <div className="space-y-2">
               <h3 className="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2 select-none">
-                <ShieldCheck className="text-brand" size={18} />
+                <ShieldCheck className="text-indigo-600" size={18} />
                 <span>When is the Best Time to Trade Forex?</span>
               </h3>
               <p className="text-slate-600 text-xs leading-relaxed font-semibold">
@@ -574,8 +574,8 @@ export default function Sessions() {
               <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Market Liquidity & Window Quality Chart</div>
               
               <div className="h-32 w-full bg-slate-900 rounded-xl relative p-4 border border-slate-800 shadow-inner flex flex-col justify-between">
-                <div className="absolute inset-y-0 left-[55%] right-[22%] bg-brand/10 border-l border-r border-brand/30 flex items-center justify-center">
-                  <span className="text-[8px] font-black text-brand-light uppercase tracking-widest bg-slate-950/60 px-2 py-0.5 rounded">Best Trading Window</span>
+                <div className="absolute inset-y-0 left-[55%] right-[22%] bg-indigo-600/10 border-l border-r border-indigo-600/30 flex items-center justify-center">
+                  <span className="text-[8px] font-black text-indigo-100 uppercase tracking-widest bg-slate-950/60 px-2 py-0.5 rounded">Best Trading Window</span>
                 </div>
 
                 <div className="absolute inset-y-0 right-[2%] w-[12%] bg-red-500/10 border-l border-red-500/20 flex items-center justify-center">
@@ -640,7 +640,7 @@ export default function Sessions() {
                       className="w-full text-left flex justify-between items-center gap-4 cursor-pointer py-1"
                     >
                       <h4 className="font-bold text-slate-800 text-xs md:text-sm leading-snug">{faq.q}</h4>
-                      <ChevronRight size={16} className={`text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-90 text-brand' : ''}`} />
+                      <ChevronRight size={16} className={`text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-90 text-indigo-600' : ''}`} />
                     </button>
                     {isOpen && (
                       <p className="mt-3 text-slate-500 text-[11px] md:text-xs leading-relaxed font-semibold animate-in slide-in-from-top-2 duration-200">
@@ -661,13 +661,13 @@ export default function Sessions() {
           {/* Quick Tools Explorer Card */}
           <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm space-y-4">
             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-2">
-              <Globe2 size={14} className="text-brand" /> Quick Navigator
+              <Globe2 size={14} className="text-indigo-600" /> Quick Navigator
             </h3>
             
             <div className="space-y-3">
               <Link to="/journal" className="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl hover:bg-slate-100 hover:border-slate-200 transition-all group font-bold">
                 <div className="flex items-center space-x-3">
-                  <div className="bg-brand/5 border border-brand/10 p-2 rounded-lg text-brand group-hover:scale-105 transition-transform"><Layers size={14} /></div>
+                  <div className="bg-indigo-600/5 border border-indigo-600/10 p-2 rounded-lg text-indigo-600 group-hover:scale-105 transition-transform"><Layers size={14} /></div>
                   <div className="min-w-0">
                     <div className="text-slate-800 text-xs">Trading Journal</div>
                     <div className="text-[9px] font-semibold text-slate-400 mt-0.5">Track and analyze your performance.</div>
@@ -678,7 +678,7 @@ export default function Sessions() {
 
               <Link to="/position-size" className="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl hover:bg-slate-100 hover:border-slate-200 transition-all group font-bold">
                 <div className="flex items-center space-x-3">
-                  <div className="bg-brand/5 border border-brand/10 p-2 rounded-lg text-brand group-hover:scale-105 transition-transform"><ShieldCheck size={14} /></div>
+                  <div className="bg-indigo-600/5 border border-indigo-600/10 p-2 rounded-lg text-indigo-600 group-hover:scale-105 transition-transform"><ShieldCheck size={14} /></div>
                   <div className="min-w-0">
                     <div className="text-slate-800 text-xs">Position Sizer</div>
                     <div className="text-[9px] font-semibold text-slate-400 mt-0.5">Calculate dynamic risk and lot sizing.</div>
@@ -689,7 +689,7 @@ export default function Sessions() {
 
               <Link to="/wiki" className="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl hover:bg-slate-100 hover:border-slate-200 transition-all group font-bold">
                 <div className="flex items-center space-x-3">
-                  <div className="bg-brand/5 border border-brand/10 p-2 rounded-lg text-brand group-hover:scale-105 transition-transform"><HelpCircle size={14} /></div>
+                  <div className="bg-indigo-600/5 border border-indigo-600/10 p-2 rounded-lg text-indigo-600 group-hover:scale-105 transition-transform"><HelpCircle size={14} /></div>
                   <div className="min-w-0">
                     <div className="text-slate-800 text-xs">Encyclopedia</div>
                     <div className="text-[9px] font-semibold text-slate-400 mt-0.5">Comprehensive glossary of forex terms.</div>

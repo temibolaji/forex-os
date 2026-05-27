@@ -1,134 +1,148 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { Globe2, ArrowLeft, Mail, Lock, DollarSign } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
-import { Globe2, ShieldAlert } from 'lucide-react';
 
 export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [currency, setCurrency] = useState('USD');
-
-  const currentUser = useAuthStore(state => state.currentUser);
-  const error = useAuthStore(state => state.error);
-  const register = useAuthStore(state => state.register);
-  const clearError = useAuthStore(state => state.clearError);
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { register, error, clearError, currentUser } = useAuthStore();
+
+  useEffect(() => {
+    clearError();
+  }, [clearError]);
 
   useEffect(() => {
     if (currentUser) {
       navigate('/journal');
     }
-    clearError();
-  }, [currentUser, navigate, clearError]);
+  }, [currentUser, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = register(email, password, currency);
+    setIsSubmitting(true);
+    const success = await register(email, password, currency);
+    setIsSubmitting(false);
     if (success) {
       navigate('/journal');
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#f1f5f9] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden select-none">
-      
-      {/* Background decorations */}
-      <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-brand/10 blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none"></div>
-
-      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 flex flex-col items-center">
-        {/* Modern Icon Header */}
-        <div className="w-12 h-12 rounded-2xl bg-brand text-white flex items-center justify-center shadow-lg border border-white/20 hover:scale-105 transition-transform">
-          <Globe2 size={24} className="text-emerald-400 animate-pulse" />
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-inter">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="flex justify-center">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+            <Globe2 size={32} className="text-white" />
+          </div>
         </div>
-        <h2 className="mt-5 text-center text-3xl font-extrabold text-slate-800 tracking-tight leading-none">
-          Create an Account
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900 tracking-tight">
+          Create your account
         </h2>
-        <p className="mt-2.5 text-center text-xs font-semibold text-slate-500 uppercase tracking-widest">
-          Join the premium trading workstation.
+        <p className="mt-2 text-center text-sm text-slate-600">
+          Join ForexOS and track your edge
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-        <div className="bg-white/70 backdrop-blur-xl py-8 px-6 shadow-2xl shadow-slate-200/50 sm:rounded-3xl sm:px-10 border border-white/60">
-          
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            {/* Limit and Validation error warnings */}
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow-xl shadow-slate-200/50 sm:rounded-2xl sm:px-10 border border-slate-100">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-rose-50 border border-rose-100 rounded-xl p-3.5 flex items-start space-x-2.5 text-xs text-rose-600 font-semibold leading-relaxed animate-in slide-in-from-top-2 duration-300">
-                <ShieldAlert size={16} className="shrink-0 mt-0.5 text-rose-500" />
-                <span>{error}</span>
+              <div className="bg-rose-50 border border-rose-200 text-rose-600 px-4 py-3 rounded-xl text-sm font-medium">
+                {error}
               </div>
             )}
-
-            <div className="space-y-1">
-              <label className="block text-xs font-black uppercase text-slate-400 tracking-wider">Email address</label>
-              <input
-                type="email"
-                required
-                className="appearance-none block w-full px-4 py-3 border border-slate-200/80 rounded-xl bg-white/50 text-sm font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-light focus:border-transparent transition-all"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="trader@example.com"
-              />
+            <div>
+              <label className="block text-sm font-semibold text-slate-700">Email address</label>
+              <div className="mt-2 relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-slate-400" />
+                </div>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="appearance-none block w-full pl-10 px-3 py-2.5 border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm font-medium transition-colors"
+                  placeholder="you@example.com"
+                />
+              </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="block text-xs font-black uppercase text-slate-400 tracking-wider">Password</label>
-              <input
-                type="password"
-                required
-                minLength={8}
-                className="appearance-none block w-full px-4 py-3 border border-slate-200/80 rounded-xl bg-white/50 text-sm font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-light focus:border-transparent transition-all"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Min 8 characters"
-              />
+            <div>
+              <label className="block text-sm font-semibold text-slate-700">Password</label>
+              <div className="mt-2 relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-slate-400" />
+                </div>
+                <input
+                  type="password"
+                  required
+                  minLength={8}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="appearance-none block w-full pl-10 px-3 py-2.5 border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm font-medium transition-colors"
+                  placeholder="At least 8 characters"
+                />
+              </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="block text-xs font-black uppercase text-slate-400 tracking-wider">Base Currency</label>
-              <div className="relative">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700">Base Currency</label>
+              <div className="mt-2 relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <DollarSign className="h-5 w-5 text-slate-400" />
+                </div>
                 <select
-                  className="appearance-none block w-full px-4 py-3 border border-slate-200/80 rounded-xl bg-white/50 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-light focus:border-transparent cursor-pointer transition-all"
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
+                  className="appearance-none block w-full pl-10 px-3 py-2.5 border border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm font-medium bg-white transition-colors"
                 >
                   <option value="USD">USD - US Dollar</option>
                   <option value="EUR">EUR - Euro</option>
                   <option value="GBP">GBP - British Pound</option>
+                  <option value="JPY">JPY - Japanese Yen</option>
                   <option value="AUD">AUD - Australian Dollar</option>
                   <option value="CAD">CAD - Canadian Dollar</option>
+                  <option value="CHF">CHF - Swiss Franc</option>
+                  <option value="NZD">NZD - New Zealand Dollar</option>
                 </select>
-                <div className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-[8px]">▼</div>
               </div>
             </div>
 
-            {/* Sub-label alerting user to the free tier cap */}
-            <div className="text-[10px] text-slate-400 font-bold text-center leading-normal pt-1 px-1">
-              🔒 Safety Guarantee: Accounts are stored locally. Capped at exactly 10 users max.
-            </div>
-
-            <div className="pt-2">
+            <div>
               <button
                 type="submit"
-                className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow text-xs font-black uppercase tracking-wider text-white bg-gradient-to-r from-brand to-brand-light hover:scale-[1.01] hover:-translate-y-0.5 active:scale-[0.99] transition-all transform duration-300 cursor-pointer shadow-brand/10 hover:shadow-lg"
+                disabled={isSubmitting}
+                className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100"
               >
-                Create Account
+                {isSubmitting ? 'Creating account...' : 'Create account'}
               </button>
             </div>
           </form>
 
-          <div className="mt-6 pt-5 border-t border-slate-100/60 text-center">
-            <p className="text-xs font-bold text-slate-500">
-              Already have an account?{' '}
-              <Link to="/auth/login" className="text-brand hover:text-brand-light transition-colors font-extrabold underline">
-                Sign In
-              </Link>
-            </p>
-          </div>
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-200" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-slate-500 font-medium">Already have an account?</span>
+              </div>
+            </div>
 
+            <div className="mt-6">
+              <Link
+                to="/auth/login"
+                className="w-full flex items-center justify-center px-4 py-2.5 border-2 border-slate-200 rounded-xl shadow-sm text-sm font-bold text-slate-700 bg-white hover:bg-slate-50 transition-colors"
+              >
+                <ArrowLeft size={16} className="mr-2 text-slate-400" /> Back to login
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>

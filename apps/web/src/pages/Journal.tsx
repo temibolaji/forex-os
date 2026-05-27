@@ -99,7 +99,7 @@ export default function Journal() {
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto animate-in fade-in duration-500">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto animate-in fade-in duration-500 font-inter">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Trade Journal</h1>
@@ -107,7 +107,7 @@ export default function Journal() {
         </div>
         <button
           onClick={() => setIsLogModalOpen(true)}
-          className="flex items-center space-x-2 bg-brand text-white px-5 py-2.5 rounded-lg shadow-lg shadow-brand/20 hover:bg-brand-light transition-all transform hover:-translate-y-0.5 active:translate-y-0 font-medium"
+          className="flex items-center space-x-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl shadow-md hover:bg-indigo-700 transition-all transform hover:-translate-y-0.5 active:translate-y-0 font-bold"
         >
           <Plus size={20} />
           <span>Log Trade</span>
@@ -123,18 +123,18 @@ export default function Journal() {
             placeholder="Search pairs..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg shadow-sm focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-shadow text-sm"
+            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm font-medium"
           />
         </div>
 
         {/* Date Filter selector */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-          <div className="flex items-center space-x-2 bg-white px-3 py-2 border border-slate-200 rounded-lg shadow-sm shrink-0">
+          <div className="flex items-center space-x-2 bg-white px-3 py-2.5 border border-slate-200 rounded-xl shadow-sm shrink-0 transition-all hover:border-indigo-200">
             <Calendar size={16} className="text-slate-400" />
             <select 
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
-              className="bg-transparent text-slate-600 text-sm font-semibold focus:outline-none cursor-pointer"
+              className="bg-transparent text-slate-700 text-sm font-semibold focus:outline-none cursor-pointer"
             >
               <option value="all_time">All Time</option>
               <option value="7d">Last 7 Days</option>
@@ -145,19 +145,19 @@ export default function Journal() {
           </div>
           
           {dateFilter === 'custom' && (
-            <div className="flex items-center space-x-1.5 bg-white px-2 py-1.5 border border-slate-200 rounded-lg shadow-sm animate-in slide-in-from-left-2 duration-200">
+            <div className="flex items-center space-x-1.5 bg-white px-2 py-1.5 border border-indigo-200 rounded-xl shadow-sm animate-in slide-in-from-left-2 duration-200 ring-1 ring-indigo-50">
               <input 
                 type="date" 
                 value={customStartDate}
                 onChange={(e) => setCustomStartDate(e.target.value)}
-                className="px-1.5 py-0.5 text-xs text-slate-600 font-semibold focus:outline-none border border-slate-100 rounded-md"
+                className="px-1.5 py-1 text-xs text-slate-700 font-semibold focus:outline-none border border-slate-200 rounded-lg hover:border-indigo-300 transition-colors"
               />
               <span className="text-xs text-slate-400 font-bold">to</span>
               <input 
                 type="date" 
                 value={customEndDate}
                 onChange={(e) => setCustomEndDate(e.target.value)}
-                className="px-1.5 py-0.5 text-xs text-slate-600 font-semibold focus:outline-none border border-slate-100 rounded-md"
+                className="px-1.5 py-1 text-xs text-slate-700 font-semibold focus:outline-none border border-slate-200 rounded-lg hover:border-indigo-300 transition-colors"
               />
             </div>
           )}
@@ -166,17 +166,17 @@ export default function Journal() {
         <div className="relative">
           <button 
             onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className="flex items-center space-x-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 shadow-sm transition-colors text-sm"
+            className="flex items-center space-x-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 shadow-sm transition-all text-sm hover:border-indigo-200"
           >
             <Filter size={18} />
             <span>{statusFilter === 'ALL' ? 'Filters' : statusFilter}</span>
           </button>
           
           {isFilterOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-xl z-20 py-1">
-              <button onClick={() => { setStatusFilter('ALL'); setIsFilterOpen(false); }} className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${statusFilter === 'ALL' ? 'font-bold text-brand' : 'text-slate-700'}`}>All Trades</button>
-              <button onClick={() => { setStatusFilter('OPEN'); setIsFilterOpen(false); }} className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${statusFilter === 'OPEN' ? 'font-bold text-brand' : 'text-slate-700'}`}>Open Trades</button>
-              <button onClick={() => { setStatusFilter('CLOSED'); setIsFilterOpen(false); }} className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${statusFilter === 'CLOSED' ? 'font-bold text-brand' : 'text-slate-700'}`}>Closed Trades</button>
+            <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-20 py-2">
+              <button onClick={() => { setStatusFilter('ALL'); setIsFilterOpen(false); }} className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${statusFilter === 'ALL' ? 'font-bold text-indigo-600' : 'text-slate-700 font-medium'}`}>All Trades</button>
+              <button onClick={() => { setStatusFilter('OPEN'); setIsFilterOpen(false); }} className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${statusFilter === 'OPEN' ? 'font-bold text-indigo-600' : 'text-slate-700 font-medium'}`}>Open Trades</button>
+              <button onClick={() => { setStatusFilter('CLOSED'); setIsFilterOpen(false); }} className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${statusFilter === 'CLOSED' ? 'font-bold text-indigo-600' : 'text-slate-700 font-medium'}`}>Closed Trades</button>
             </div>
           )}
         </div>
@@ -244,11 +244,11 @@ export default function Journal() {
                   </td>
                   <td className="p-4 pr-6 text-right">
                     {trade.status === 'OPEN' ? (
-                      <button className="text-xs font-medium bg-brand/10 text-brand px-3 py-1.5 rounded-lg hover:bg-brand hover:text-white transition-colors">
+                      <button className="text-xs font-bold bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg hover:bg-indigo-600 hover:text-white transition-colors">
                         Close Trade
                       </button>
                     ) : (
-                      <span className="text-xs font-medium text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg">
+                      <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg">
                         Closed
                       </span>
                     )}
@@ -315,10 +315,10 @@ export default function Journal() {
             </div>
 
             <div className="flex justify-end space-x-3 mt-8">
-              <button onClick={() => setIsLogModalOpen(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors font-medium">
+              <button onClick={() => setIsLogModalOpen(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors font-bold">
                 Cancel
               </button>
-              <button onClick={handleSaveTrade} className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-light transition-colors font-medium shadow-md">
+              <button onClick={handleSaveTrade} className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-bold shadow-md">
                 Save Trade
               </button>
             </div>
