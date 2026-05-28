@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
+const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 
 export interface User {
   id: string;
@@ -34,9 +34,16 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
       });
       
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch (e) {
+        set({ error: 'Server returned an invalid response. It might be waking up.', isLoading: false });
+        return false;
+      }
+      
       if (!res.ok) {
-        set({ error: data.message || 'Login failed', isLoading: false });
+        set({ error: data?.message || 'Login failed', isLoading: false });
         return false;
       }
       
@@ -59,9 +66,16 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         body: JSON.stringify({ email: email.trim().toLowerCase(), password, accountCurrency: currency }),
       });
       
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch (e) {
+        set({ error: 'Server returned an invalid response. It might be waking up.', isLoading: false });
+        return false;
+      }
+
       if (!res.ok) {
-        set({ error: data.message || 'Registration failed', isLoading: false });
+        set({ error: data?.message || 'Registration failed', isLoading: false });
         return false;
       }
       
