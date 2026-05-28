@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import fastifyJwt from '@fastify/jwt';
 import fastifyCookie from '@fastify/cookie';
+import cors from '@fastify/cors';
 import * as dotenv from 'dotenv';
 import authRoutes from './routes/auth';
 import journalRoutes from './routes/journal';
@@ -21,6 +22,11 @@ const server = Fastify({
 }).withTypeProvider<TypeBoxTypeProvider>();
 
 // Register Plugins
+server.register(cors, {
+  origin: true, // Allow all origins for now (or change to your Vercel URL later)
+  credentials: true,
+});
+
 server.register(fastifyCookie, {
   secret: process.env.COOKIE_SECRET || 'supersecretcookie',
 });
