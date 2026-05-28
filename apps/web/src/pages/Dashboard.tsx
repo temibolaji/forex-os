@@ -9,6 +9,7 @@ export default function Dashboard() {
   const [dateFilter, setDateFilter] = useState('all_time');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
+  const [hoveredPoint, setHoveredPoint] = useState<any>(null);
 
   const filteredTrades = useMemo(() => {
     return trades.filter(t => {
@@ -76,6 +77,58 @@ export default function Dashboard() {
       }
     });
     return perf;
+  }, [filteredTrades]);
+
+  const maxSessionPerf = useMemo(() => {
+    const max = Math.max(...Object.values(sessionPerformance).map(v => Math.abs(v)));
+    return max > 0 ? max : 1;
+  }, [sessionPerformance]);
+
+  const equityData = useMemo(() => {
+    const closedTrades = [...filteredTrades]
+      .filter(t => t.status === 'CLOSED' && t.pnlUsd !== null)
+      .sort((a, b) => new Date(a.openedAt).getTime() - new Date(b.openedAt).getTime());
+
+    let currentBalance = 10000;
+    
+    if (closedTrades.length === 0) {
+      return { points: [{ x: 0, y: 50, balance: 10000, pnl: 0, date: new Date().toLocaleDateString() }], pathData: 'M0,50 L100,50', minBalance: 10000, maxBalance: 10000, hasData: false };
+    }
+
+    let minBalance = 10000;
+    let maxBalance = 10000;
+
+    const dataPoints = closedTrades.map(t => {
+      currentBalance += t.pnlUsd!;
+      if (currentBalance < minBalance) minBalance = currentBalance;
+      if (currentBalance > maxBalance) maxBalance = currentBalance;
+      return {
+        date: new Date(t.openedAt).toLocaleDateString(),
+        balance: currentBalance,
+        pnl: t.pnlUsd!
+      };
+    });
+
+    // If only one trade, create a line from start to trade
+    if (dataPoints.length === 1) {
+      dataPoints.unshift({ date: 'Start', balance: 10000, pnl: 0 });
+    }
+
+    const yRange = maxBalance - minBalance || 100;
+    const padding = yRange * 0.1;
+    const paddedMin = minBalance - padding;
+    const paddedMax = maxBalance + padding;
+    const paddedRange = paddedMax - paddedMin;
+
+    const points = dataPoints.map((p, i) => {
+      const x = (i / (dataPoints.length - 1)) * 100;
+      const y = 100 - ((p.balance - paddedMin) / paddedRange) * 100;
+      return { ...p, x, y };
+    });
+
+    const pathData = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+
+    return { points, pathData, minBalance, maxBalance, hasData: true };
   }, [filteredTrades]);
 
   return (
@@ -192,7 +245,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="h-72 w-full bg-slate-50/50 rounded-2xl border border-slate-100 flex flex-col justify-end relative overflow-hidden px-4 pt-6 pb-8">
+          <div className="h-72 w-full bg-slate-50/50 rounded-2xl border border-slate-100 flex flex-col justify-end relative overflow-visible px-4 pt-6 pb-8" onMouseLeave={() => setHoveredPoint(null)}>
             {/* Grid background lines */}
             <div className="absolute inset-0 flex flex-col justify-between pointer-events-none p-6 opacity-30">
               <div className="border-b border-slate-200 w-full"></div>
@@ -209,27 +262,62 @@ export default function Dashboard() {
                   <stop offset="100%" stopColor="#6366f1" stopOpacity="0"/>
                 </linearGradient>
               </defs>
-              <path d="M0,100 L0,80 L16.6,73.3 L33.3,77.5 L50,56.6 L66.6,60 L83.3,33.3 L100,10 V100 H0 Z" fill="url(#chartIndigoGradient)" />
-              <path d="M0,80 L16.6,73.3 L33.3,77.5 L50,56.6 L66.6,60 L83.3,33.3 L100,10" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-              <circle cx="0" cy="80" r="1.5" className="fill-white stroke-indigo-500 stroke-2" />
-              <circle cx="16.6" cy="73.3" r="1.5" className="fill-white stroke-indigo-500 stroke-2" />
-              <circle cx="33.3" cy="77.5" r="1.5" className="fill-white stroke-indigo-500 stroke-2" />
-              <circle cx="50" cy="56.6" r="1.5" className="fill-white stroke-indigo-500 stroke-2" />
-              <circle cx="66.6" cy="60" r="1.5" className="fill-white stroke-indigo-500 stroke-2" />
-              <circle cx="83.3" cy="33.3" r="1.5" className="fill-white stroke-indigo-500 stroke-2" />
-              <circle cx="100" cy="10" r="2.5" className="fill-indigo-500 animate-ping" />
-              <circle cx="100" cy="10" r="1.8" className="fill-indigo-600 stroke-white stroke-1" />
+              <path d={`${equityData.pathData} L100,100 L0,100 Z`} fill="url(#chartIndigoGradient)" />
+              <path d={equityData.pathData} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+              
+              {equityData.points.map((p, i) => (
+                <circle 
+                  key={i}
+                  cx={p.x} 
+                  cy={p.y} 
+                  r={hoveredPoint === i ? "4" : "1.5"} 
+                  className={`fill-white stroke-indigo-500 stroke-2 cursor-pointer transition-all duration-200`}
+                  onMouseEnter={() => setHoveredPoint(i)}
+                  vectorEffect="non-scaling-stroke"
+                />
+              ))}
+              {equityData.hasData && (
+                <>
+                  <circle cx="100" cy={equityData.points[equityData.points.length - 1].y} r="2.5" className="fill-indigo-500 animate-ping" />
+                  <circle cx="100" cy={equityData.points[equityData.points.length - 1].y} r="1.8" className="fill-indigo-600 stroke-white stroke-1" />
+                </>
+              )}
             </svg>
+
+            {hoveredPoint !== null && (
+              <div 
+                className="absolute z-20 bg-slate-900 text-white text-xs font-bold px-3 py-2 rounded-xl shadow-xl pointer-events-none transform -translate-x-1/2 -translate-y-full"
+                style={{ 
+                  left: `calc(1rem + ${equityData.points[hoveredPoint].x}% * 0.85)`, 
+                  top: `calc(1.5rem + ${equityData.points[hoveredPoint].y}% * 0.7 - 10px)` 
+                }}
+              >
+                <div className="text-slate-300 text-[10px] mb-0.5">{equityData.points[hoveredPoint].date}</div>
+                <div>Bal: ${equityData.points[hoveredPoint].balance.toFixed(2)}</div>
+                {equityData.points[hoveredPoint].pnl !== undefined && equityData.points[hoveredPoint].pnl !== 0 && (
+                  <div className={equityData.points[hoveredPoint].pnl >= 0 ? "text-emerald-400" : "text-rose-400"}>
+                    {equityData.points[hoveredPoint].pnl > 0 ? "+" : ""}{equityData.points[hoveredPoint].pnl.toFixed(2)}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* X-Axis Labels */}
             <div className="absolute inset-x-4 bottom-2 flex justify-between text-[10px] text-slate-400 font-bold tracking-wide">
-              <span>-</span>
-              <span>-</span>
-              <span>-</span>
-              <span>-</span>
-              <span>-</span>
-              <span>-</span>
-              <span>Today</span>
+              {equityData.points.length > 2 ? (
+                <>
+                  <span>{equityData.points[0].date}</span>
+                  <span>-</span>
+                  <span>-</span>
+                  <span>-</span>
+                  <span>Today</span>
+                </>
+              ) : (
+                <>
+                  <span>Start</span>
+                  <span>Today</span>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -246,7 +334,7 @@ export default function Dashboard() {
                 </span>
               </div>
               <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                <div className={`h-full ${sessionPerformance.LONDON >= 0 ? 'bg-emerald-500' : 'bg-rose-500'} rounded-full`} style={{ width: Math.min(100, Math.abs(sessionPerformance.LONDON) / 100 || 5) + '%' }}></div>
+                <div className={`h-full ${sessionPerformance.LONDON >= 0 ? 'bg-emerald-500' : 'bg-rose-500'} rounded-full`} style={{ width: Math.max(5, (Math.abs(sessionPerformance.LONDON) / maxSessionPerf) * 100) + '%' }}></div>
               </div>
             </div>
             
@@ -258,7 +346,7 @@ export default function Dashboard() {
                 </span>
               </div>
               <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                <div className={`h-full ${sessionPerformance.NEW_YORK >= 0 ? 'bg-indigo-500' : 'bg-rose-500'} rounded-full`} style={{ width: Math.min(100, Math.abs(sessionPerformance.NEW_YORK) / 100 || 5) + '%' }}></div>
+                <div className={`h-full ${sessionPerformance.NEW_YORK >= 0 ? 'bg-indigo-500' : 'bg-rose-500'} rounded-full`} style={{ width: Math.max(5, (Math.abs(sessionPerformance.NEW_YORK) / maxSessionPerf) * 100) + '%' }}></div>
               </div>
             </div>
 
@@ -270,7 +358,19 @@ export default function Dashboard() {
                 </span>
               </div>
               <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                <div className={`h-full ${sessionPerformance.TOKYO >= 0 ? 'bg-amber-500' : 'bg-rose-500'} rounded-full`} style={{ width: Math.min(100, Math.abs(sessionPerformance.TOKYO) / 100 || 5) + '%' }}></div>
+                <div className={`h-full ${sessionPerformance.TOKYO >= 0 ? 'bg-amber-500' : 'bg-rose-500'} rounded-full`} style={{ width: Math.max(5, (Math.abs(sessionPerformance.TOKYO) / maxSessionPerf) * 100) + '%' }}></div>
+              </div>
+            </div>
+            
+            <div>
+              <div className="flex justify-between text-sm mb-2">
+                <span className="font-semibold text-slate-700">Sydney Session</span>
+                <span className={`font-bold ${sessionPerformance.SYDNEY >= 0 ? 'text-sky-500' : 'text-rose-500'}`}>
+                  {sessionPerformance.SYDNEY >= 0 ? '+' : '-'}${Math.abs(sessionPerformance.SYDNEY).toFixed(2)}
+                </span>
+              </div>
+              <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div className={`h-full ${sessionPerformance.SYDNEY >= 0 ? 'bg-sky-500' : 'bg-rose-500'} rounded-full`} style={{ width: Math.max(5, (Math.abs(sessionPerformance.SYDNEY) / maxSessionPerf) * 100) + '%' }}></div>
               </div>
             </div>
           </div>
@@ -334,7 +434,7 @@ export default function Dashboard() {
             </div>
 
             <div className="p-6 md:p-8 flex-1 overflow-y-auto flex flex-col space-y-6">
-              <div className="h-[400px] w-full bg-slate-950 rounded-3xl relative overflow-hidden p-6 border border-slate-800 shadow-inner flex flex-col justify-end">
+              <div className="h-[400px] w-full bg-slate-950 rounded-3xl relative overflow-visible p-6 border border-slate-800 shadow-inner flex flex-col justify-end" onMouseLeave={() => setHoveredPoint(null)}>
                 <div className="absolute inset-0 flex flex-col justify-between pointer-events-none p-8 opacity-10">
                   <div className="border-b border-dashed border-white w-full"></div>
                   <div className="border-b border-dashed border-white w-full"></div>
@@ -350,26 +450,59 @@ export default function Dashboard() {
                       <stop offset="100%" stopColor="#6366f1" stopOpacity="0"/>
                     </linearGradient>
                   </defs>
-                  <path d="M0,100 L0,80 L16.6,73.3 L33.3,77.5 L50,56.6 L66.6,60 L83.3,33.3 L100,10 V100 H0 Z" fill="url(#expandedChartGradient)" />
-                  <path d="M0,80 L16.6,73.3 L33.3,77.5 L50,56.6 L66.6,60 L83.3,33.3 L100,10" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-                  <circle cx="0" cy="80" r="1.5" className="fill-slate-950 stroke-indigo-400 stroke-2" />
-                  <circle cx="16.6" cy="73.3" r="1.5" className="fill-slate-950 stroke-indigo-400 stroke-2" />
-                  <circle cx="33.3" cy="77.5" r="1.5" className="fill-slate-950 stroke-indigo-400 stroke-2" />
-                  <circle cx="50" cy="56.6" r="1.5" className="fill-slate-950 stroke-indigo-400 stroke-2" />
-                  <circle cx="66.6" cy="60" r="1.5" className="fill-slate-950 stroke-indigo-400 stroke-2" />
-                  <circle cx="83.3" cy="33.3" r="1.5" className="fill-slate-950 stroke-indigo-400 stroke-2" />
-                  <circle cx="100" cy="10" r="2.5" className="fill-indigo-400 animate-ping" />
-                  <circle cx="100" cy="10" r="1.8" className="fill-indigo-400 stroke-slate-950 stroke-1" />
+                  <path d={`${equityData.pathData} L100,100 L0,100 Z`} fill="url(#expandedChartGradient)" />
+                  <path d={equityData.pathData} fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                  
+                  {equityData.points.map((p, i) => (
+                    <circle 
+                      key={i}
+                      cx={p.x} 
+                      cy={p.y} 
+                      r={hoveredPoint === i ? "4" : "1.5"} 
+                      className="fill-slate-950 stroke-indigo-400 stroke-2 cursor-pointer transition-all duration-200"
+                      onMouseEnter={() => setHoveredPoint(i)}
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  ))}
+                  
+                  {equityData.hasData && (
+                    <>
+                      <circle cx="100" cy={equityData.points[equityData.points.length - 1].y} r="2.5" className="fill-indigo-400 animate-ping" />
+                      <circle cx="100" cy={equityData.points[equityData.points.length - 1].y} r="1.8" className="fill-indigo-400 stroke-slate-950 stroke-1" />
+                    </>
+                  )}
                 </svg>
 
+                {hoveredPoint !== null && (
+                  <div 
+                    className="absolute z-20 bg-white text-slate-900 text-sm font-bold px-4 py-3 rounded-xl shadow-xl pointer-events-none transform -translate-x-1/2 -translate-y-full border border-slate-200"
+                    style={{ 
+                      left: `calc(1.5rem + ${equityData.points[hoveredPoint].x}% * 0.9)`, 
+                      top: `calc(1.5rem + ${equityData.points[hoveredPoint].y}% * 0.8 - 15px)` 
+                    }}
+                  >
+                    <div className="text-slate-500 text-xs mb-1">{equityData.points[hoveredPoint].date}</div>
+                    <div className="text-lg">Bal: ${equityData.points[hoveredPoint].balance.toFixed(2)}</div>
+                    {equityData.points[hoveredPoint].pnl !== undefined && equityData.points[hoveredPoint].pnl !== 0 && (
+                      <div className={`mt-1 ${equityData.points[hoveredPoint].pnl >= 0 ? "text-emerald-500" : "text-rose-500"}`}>
+                        {equityData.points[hoveredPoint].pnl > 0 ? "+" : ""}{equityData.points[hoveredPoint].pnl.toFixed(2)}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="absolute inset-x-6 bottom-3 flex justify-between text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                  <span>Oct 1 (Start)</span>
-                  <span>Oct 5</span>
-                  <span>Oct 10</span>
-                  <span>Oct 15</span>
-                  <span>Oct 20</span>
-                  <span>Oct 25</span>
-                  <span>Oct 30 (ATH)</span>
+                  {equityData.points.length > 2 ? (
+                    <>
+                      <span>{equityData.points[0].date}</span>
+                      <span>Today</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Start</span>
+                      <span>Today</span>
+                    </>
+                  )}
                 </div>
               </div>
 
