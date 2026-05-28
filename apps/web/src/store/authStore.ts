@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 
+const API_URL = import.meta.env.VITE_API_URL || '';
+
 export interface User {
   id: string;
   email: string;
@@ -25,7 +27,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   login: async (email, password) => {
     set({ error: null, isLoading: true });
     try {
-      const res = await fetch('/api/v1/auth/login', {
+      const res = await fetch(`${API_URL}/api/v1/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
@@ -49,7 +51,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   register: async (email, password, currency) => {
     set({ error: null, isLoading: true });
     try {
-      const res = await fetch('/api/v1/auth/register', {
+      const res = await fetch(`${API_URL}/api/v1/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim().toLowerCase(), password, accountCurrency: currency }),
@@ -72,7 +74,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   logout: async () => {
     set({ isLoading: true });
     try {
-      await fetch('/api/v1/auth/logout', { method: 'POST' });
+      await fetch(`${API_URL}/api/v1/auth/logout`, { method: 'POST' });
     } catch(e) {}
     localStorage.removeItem('forexos_token');
     set({ currentUser: null, error: null, isLoading: false });
@@ -81,7 +83,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   checkSession: async () => {
     set({ isLoading: true });
     try {
-      const res = await fetch('/api/v1/auth/refresh', { method: 'POST' });
+      const res = await fetch(`${API_URL}/api/v1/auth/refresh`, { method: 'POST' });
       if (res.ok) {
         const data = await res.json();
         localStorage.setItem('forexos_token', data.accessToken);
