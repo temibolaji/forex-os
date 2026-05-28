@@ -54,7 +54,11 @@ server.register(pipCalcRoutes);
 server.register(analyticsRoutes);
 server.register(coachRoutes);
 
-// Health check route
+// Health check routes
+server.get('/', async () => {
+  return { status: 'ok', service: 'ForexOS API' };
+});
+
 server.get('/health', async () => {
   return { status: 'ok' };
 });
