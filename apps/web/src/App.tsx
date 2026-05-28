@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, NavLink, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BookOpen, Calculator, Calendar as CalendarIcon, Globe2, CheckSquare, BarChart3, TrendingUp, Bot, HelpCircle, LogOut, User as UserIcon } from 'lucide-react';
+import { BookOpen, Calculator, Calendar as CalendarIcon, Globe2, CheckSquare, BarChart3, TrendingUp, Bot, HelpCircle, LogOut, User as UserIcon, Settings as SettingsIcon } from 'lucide-react';
 
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -14,6 +14,7 @@ import Dashboard from './pages/Dashboard';
 import Simulator from './pages/Simulator';
 import Coach from './pages/Coach';
 import Wiki from './pages/Wiki';
+import Settings from './pages/Settings';
 import { useAuthStore } from './store/authStore';
 
 const queryClient = new QueryClient();
@@ -106,6 +107,10 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
               </div>
             </div>
             
+            <NavLink to="/settings" className="w-full flex items-center justify-center space-x-2 bg-white/5 hover:bg-white/10 border border-white/10 text-indigo-100 font-bold py-2 px-3 rounded-xl transition-all text-xs mb-2">
+              <SettingsIcon size={13} />
+              <span>Settings</span>
+            </NavLink>
             <button 
               onClick={handleLogout}
               className="w-full flex items-center justify-center space-x-2 bg-white/5 hover:bg-rose-500 hover:text-white border border-white/10 hover:border-rose-500 text-indigo-100 font-bold py-2 px-3 rounded-xl transition-all text-xs"
@@ -190,6 +195,7 @@ function App() {
           <Route path="/dashboard" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
           <Route path="/simulator" element={<ProtectedRoute><AppLayout><Simulator /></AppLayout></ProtectedRoute>} />
           <Route path="/coach" element={<ProtectedRoute><AppLayout><Coach /></AppLayout></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><AppLayout><Settings /></AppLayout></ProtectedRoute>} />
 
           {/* Fallback Redirect */}
           <Route path="*" element={<Navigate to="/journal" replace />} />

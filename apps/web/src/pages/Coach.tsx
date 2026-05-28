@@ -20,10 +20,10 @@ export default function Coach() {
     setTimeout(() => {
       setMessages(prev => [...prev, { 
         role: 'coach', 
-        text: "Based on your data, your win rate is solid at 58%, but I noticed your average loss is slightly larger than your average win when trading the Tokyo session. This is dragging your expectancy down. I recommend avoiding JPY pairs during low volatility periods." 
+        text: "The AI coach backend is currently under construction. Please check back later!" 
       }]);
       setIsLoading(false);
-    }, 1500);
+    }, 1000);
   };
 
   return (

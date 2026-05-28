@@ -46,6 +46,26 @@ const LoginSchema = {
   },
 };
 
+const ChangePasswordSchema = {
+  body: Type.Object({
+    oldPassword: Type.String(),
+    newPassword: Type.String({ minLength: 8 }),
+  }),
+  response: {
+    200: Type.Object({
+      message: Type.String(),
+    }),
+    400: Type.Object({
+      error: Type.String(),
+      message: Type.String(),
+    }),
+    401: Type.Object({
+      error: Type.String(),
+      message: Type.String(),
+    }),
+  },
+};
+
 export default async function authRoutes(server: FastifyInstance) {
   server.post('/api/v1/auth/register', { schema: RegisterSchema }, async (request, reply) => {
     const { email, password, accountCurrency, timezone } = request.body as any;
@@ -127,6 +147,30 @@ export default async function authRoutes(server: FastifyInstance) {
     const newAccessToken = server.jwt.sign({ sub: user.id, email: user.email }, { expiresIn: '15m' });
     return reply.code(200).send({ accessToken: newAccessToken });
   });
+
+  server.post(
+    '/api/v1/auth/change-password',
+    { schema: ChangePasswordSchema, onRequest: [(server as any).authenticate] },
+    async (request, reply) => {
+      const { oldPassword, newPassword } = request.body as any;
+      const userPayload = request.user as any; // attached by fastify-jwt
+
+      const [user] = await db.select().from(users).where(eq(users.id, userPayload.sub));
+      if (!user) {
+        return reply.code(401).send({ error: 'UNAUTHORIZED', message: 'User not found' });
+      }
+
+      const isValid = await bcrypt.compare(oldPassword, user.passwordHash);
+      if (!isValid) {
+        return reply.code(400).send({ error: 'VALIDATION_ERROR', message: 'Incorrect old password' });
+      }
+
+      const passwordHash = await bcrypt.hash(newPassword, 10);
+      await db.update(users).set({ passwordHash }).where(eq(users.id, user.id));
+
+      return reply.code(200).send({ message: 'Password updated successfully' });
+    }
+  );
 
   server.post('/api/v1/auth/logout', async (request, reply) => {
     const refreshToken = request.cookies.refreshToken;

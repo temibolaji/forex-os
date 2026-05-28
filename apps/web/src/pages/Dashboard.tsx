@@ -1,40 +1,82 @@
 import { useState, useMemo } from 'react';
 import { TrendingUp, Target, Activity, Award, Calendar, ArrowUpRight, ShieldCheck, Maximize2, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-// Base mock analytics data
-const baseMetrics = {
-  totalTrades: 124,
-  winRate: 58.4,
-  profitFactor: 1.85,
-  expectancyUsd: 42.50,
-  totalPnl: 5270.00
-};
+import { useTradeStore } from '../store/tradeStore';
 
 export default function Dashboard() {
+  const trades = useTradeStore(state => state.trades);
   const [isChartExpanded, setIsChartExpanded] = useState(false);
   const [dateFilter, setDateFilter] = useState('all_time');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
 
-  // Dynamically calculate metrics based on the selected date filter to simulate reactivity
+  const filteredTrades = useMemo(() => {
+    return trades.filter(t => {
+      const d = new Date(t.openedAt);
+      const now = new Date();
+      if (dateFilter === '7d') {
+        const weekAgo = new Date();
+        weekAgo.setDate(now.getDate() - 7);
+        return d >= weekAgo;
+      }
+      if (dateFilter === '30d') {
+        const monthAgo = new Date();
+        monthAgo.setDate(now.getDate() - 30);
+        return d >= monthAgo;
+      }
+      if (dateFilter === 'this_year') {
+        return d.getFullYear() === now.getFullYear();
+      }
+      if (dateFilter === 'custom') {
+        if (customStartDate && new Date(customStartDate) > d) return false;
+        if (customEndDate) {
+          const end = new Date(customEndDate);
+          end.setHours(23, 59, 59, 999);
+          if (end < d) return false;
+        }
+      }
+      return true;
+    });
+  }, [trades, dateFilter, customStartDate, customEndDate]);
+
   const metrics = useMemo(() => {
-    let multiplier = 1;
-    if (dateFilter === '7d') multiplier = 0.1;
-    else if (dateFilter === '30d') multiplier = 0.3;
-    else if (dateFilter === 'this_year') multiplier = 0.8;
-    else if (dateFilter === 'custom') {
-      multiplier = customStartDate && customEndDate ? 0.5 : 1; // dummy custom calculation
-    }
+    let winningTrades = 0;
+    let losingTrades = 0;
+    let totalPnl = 0;
+    let grossProfit = 0;
+    let grossLoss = 0;
+
+    filteredTrades.forEach(t => {
+      if (t.status === 'CLOSED' && t.pnlUsd !== null) {
+        totalPnl += t.pnlUsd;
+        if (t.pnlUsd > 0) { winningTrades++; grossProfit += t.pnlUsd; }
+        else if (t.pnlUsd < 0) { losingTrades++; grossLoss += Math.abs(t.pnlUsd); }
+      }
+    });
+
+    const closedTrades = winningTrades + losingTrades;
+    const winRate = closedTrades > 0 ? (winningTrades / closedTrades) * 100 : 0;
+    const profitFactor = grossLoss > 0 ? (grossProfit / grossLoss) : (grossProfit > 0 ? grossProfit : 0);
+    const expectancyUsd = closedTrades > 0 ? (totalPnl / closedTrades) : 0;
 
     return {
-      totalTrades: Math.round(baseMetrics.totalTrades * multiplier),
-      winRate: (baseMetrics.winRate + (multiplier > 0.5 ? 2 : -2)).toFixed(1),
-      profitFactor: (baseMetrics.profitFactor * (multiplier > 0.5 ? 1.1 : 0.9)).toFixed(2),
-      expectancyUsd: baseMetrics.expectancyUsd * (multiplier > 0.5 ? 1.05 : 0.95),
-      totalPnl: baseMetrics.totalPnl * multiplier
+      totalTrades: filteredTrades.length,
+      winRate: winRate.toFixed(1),
+      profitFactor: profitFactor.toFixed(2),
+      expectancyUsd,
+      totalPnl
     };
-  }, [dateFilter, customStartDate, customEndDate]);
+  }, [filteredTrades]);
+
+  const sessionPerformance = useMemo(() => {
+    const perf = { LONDON: 0, NEW_YORK: 0, TOKYO: 0, SYDNEY: 0 };
+    filteredTrades.forEach(t => {
+      if (t.status === 'CLOSED' && t.pnlUsd !== null && t.session in perf) {
+        perf[t.session as keyof typeof perf] += t.pnlUsd;
+      }
+    });
+    return perf;
+  }, [filteredTrades]);
 
   return (
     <div className="p-4 md:p-8 max-w-5xl mx-auto animate-in fade-in duration-500 font-inter">
@@ -181,13 +223,13 @@ export default function Dashboard() {
 
             {/* X-Axis Labels */}
             <div className="absolute inset-x-4 bottom-2 flex justify-between text-[10px] text-slate-400 font-bold tracking-wide">
-              <span>Oct 1</span>
-              <span>Oct 5</span>
-              <span>Oct 10</span>
-              <span>Oct 15</span>
-              <span>Oct 20</span>
-              <span>Oct 25</span>
-              <span>Oct 30</span>
+              <span>-</span>
+              <span>-</span>
+              <span>-</span>
+              <span>-</span>
+              <span>-</span>
+              <span>-</span>
+              <span>Today</span>
             </div>
           </div>
         </div>
@@ -199,30 +241,36 @@ export default function Dashboard() {
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="font-semibold text-slate-700">London Session</span>
-                <span className="font-bold text-emerald-600">+$3,200</span>
+                <span className={`font-bold ${sessionPerformance.LONDON >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
+                  {sessionPerformance.LONDON >= 0 ? '+' : '-'}${Math.abs(sessionPerformance.LONDON).toFixed(2)}
+                </span>
               </div>
               <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-emerald-500 rounded-full" style={{ width: '65%' }}></div>
+                <div className={`h-full ${sessionPerformance.LONDON >= 0 ? 'bg-emerald-500' : 'bg-rose-500'} rounded-full`} style={{ width: Math.min(100, Math.abs(sessionPerformance.LONDON) / 100 || 5) + '%' }}></div>
               </div>
             </div>
             
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="font-semibold text-slate-700">New York Session</span>
-                <span className="font-bold text-indigo-500">+$2,450</span>
+                <span className={`font-bold ${sessionPerformance.NEW_YORK >= 0 ? 'text-indigo-500' : 'text-rose-500'}`}>
+                  {sessionPerformance.NEW_YORK >= 0 ? '+' : '-'}${Math.abs(sessionPerformance.NEW_YORK).toFixed(2)}
+                </span>
               </div>
               <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-indigo-500 rounded-full" style={{ width: '45%' }}></div>
+                <div className={`h-full ${sessionPerformance.NEW_YORK >= 0 ? 'bg-indigo-500' : 'bg-rose-500'} rounded-full`} style={{ width: Math.min(100, Math.abs(sessionPerformance.NEW_YORK) / 100 || 5) + '%' }}></div>
               </div>
             </div>
 
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="font-semibold text-slate-700">Tokyo Session</span>
-                <span className="font-bold text-rose-500">-$380</span>
+                <span className={`font-bold ${sessionPerformance.TOKYO >= 0 ? 'text-amber-500' : 'text-rose-500'}`}>
+                  {sessionPerformance.TOKYO >= 0 ? '+' : '-'}${Math.abs(sessionPerformance.TOKYO).toFixed(2)}
+                </span>
               </div>
               <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-rose-500 rounded-full" style={{ width: '15%' }}></div>
+                <div className={`h-full ${sessionPerformance.TOKYO >= 0 ? 'bg-amber-500' : 'bg-rose-500'} rounded-full`} style={{ width: Math.min(100, Math.abs(sessionPerformance.TOKYO) / 100 || 5) + '%' }}></div>
               </div>
             </div>
           </div>
@@ -235,36 +283,32 @@ export default function Dashboard() {
             <Link to="/journal" className="text-sm font-bold text-indigo-600 hover:text-indigo-800 transition-colors bg-indigo-50 px-3.5 py-1.5 rounded-xl">View All</Link>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[600px]">
-              <thead>
-                <tr className="border-b border-slate-200 text-slate-400 text-xs font-bold uppercase tracking-wider">
-                  <th className="p-4 pl-0 font-bold">Pair</th>
-                  <th className="p-4 font-bold">Direction</th>
-                  <th className="p-4 font-bold">Result</th>
-                  <th className="p-4 font-bold text-right pr-0">Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                <tr className="hover:bg-slate-50 transition-colors">
-                  <td className="p-4 pl-0 font-bold text-slate-900">EURUSD</td>
-                  <td className="p-4 text-emerald-600 font-semibold text-sm">LONG</td>
-                  <td className="p-4 font-bold text-emerald-600">+$452.00</td>
-                  <td className="p-4 pr-0 text-right text-slate-500 text-sm font-semibold">Today</td>
-                </tr>
-                <tr className="hover:bg-slate-50 transition-colors">
-                  <td className="p-4 pl-0 font-bold text-slate-900">GBPJPY</td>
-                  <td className="p-4 text-rose-500 font-semibold text-sm">SHORT</td>
-                  <td className="p-4 font-bold text-rose-500">-$150.00</td>
-                  <td className="p-4 pr-0 text-right text-slate-500 text-sm font-semibold">Yesterday</td>
-                </tr>
-                <tr className="hover:bg-slate-50 transition-colors">
-                  <td className="p-4 pl-0 font-bold text-slate-900">XAUUSD</td>
-                  <td className="p-4 text-emerald-600 font-semibold text-sm">LONG</td>
-                  <td className="p-4 font-bold text-emerald-600">+$1,200.00</td>
-                  <td className="p-4 pr-0 text-right text-slate-500 text-sm font-semibold">Oct 24</td>
-                </tr>
-              </tbody>
-            </table>
+            {filteredTrades.length === 0 ? (
+              <div className="py-8 text-center text-slate-500 font-semibold text-sm">No trades found. Go to Journal to log your first trade!</div>
+            ) : (
+              <table className="w-full text-left border-collapse min-w-[600px]">
+                <thead>
+                  <tr className="border-b border-slate-200 text-slate-400 text-xs font-bold uppercase tracking-wider">
+                    <th className="p-4 pl-0 font-bold">Pair</th>
+                    <th className="p-4 font-bold">Direction</th>
+                    <th className="p-4 font-bold">Result</th>
+                    <th className="p-4 font-bold text-right pr-0">Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredTrades.slice(0, 5).map(trade => (
+                    <tr key={trade.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="p-4 pl-0 font-bold text-slate-900">{trade.pair}</td>
+                      <td className={`p-4 font-semibold text-sm ${trade.direction === 'LONG' ? 'text-emerald-600' : 'text-rose-500'}`}>{trade.direction}</td>
+                      <td className={`p-4 font-bold ${trade.pnlUsd !== null && trade.pnlUsd > 0 ? 'text-emerald-600' : trade.pnlUsd !== null && trade.pnlUsd < 0 ? 'text-rose-500' : 'text-slate-500'}`}>
+                        {trade.pnlUsd !== null ? (trade.pnlUsd > 0 ? `+$${trade.pnlUsd.toFixed(2)}` : `-$${Math.abs(trade.pnlUsd).toFixed(2)}`) : 'OPEN'}
+                      </td>
+                      <td className="p-4 pr-0 text-right text-slate-500 text-sm font-semibold">{new Date(trade.openedAt).toLocaleDateString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>

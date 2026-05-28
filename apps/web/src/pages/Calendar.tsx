@@ -10,44 +10,7 @@ export default function CalendarComponent() {
   const [customEndDate, setCustomEndDate] = useState('');
 
   // Mock data mimicking the API response
-  const events = [
-    {
-      id: '1',
-      name: 'Fed Interest Rate Decision',
-      currency: 'USD',
-      impact: 'HIGH',
-      scheduledAt: new Date(new Date().setHours(14, 0, 0, 0)).toISOString(),
-      forecast: '5.25%',
-      previous: '5.50%',
-    },
-    {
-      id: '2',
-      name: 'ECB Press Conference',
-      currency: 'EUR',
-      impact: 'HIGH',
-      scheduledAt: new Date(new Date(Date.now() + 86400000).setHours(8, 30, 0, 0)).toISOString(),
-      forecast: '-',
-      previous: '-',
-    },
-    {
-      id: '3',
-      name: 'Core CPI m/m',
-      currency: 'USD',
-      impact: 'HIGH',
-      scheduledAt: new Date(new Date(Date.now() + 3 * 86400000).setHours(8, 30, 0, 0)).toISOString(),
-      forecast: '0.2%',
-      previous: '0.3%',
-    },
-    {
-      id: '4',
-      name: 'Unemployment Claims',
-      currency: 'USD',
-      impact: 'MEDIUM',
-      scheduledAt: new Date(new Date(Date.now() + 4 * 86400000).setHours(8, 30, 0, 0)).toISOString(),
-      forecast: '215K',
-      previous: '210K',
-    }
-  ];
+  const events: any[] = [];
 
   const filteredEvents = useMemo(() => {
     return events.filter(e => {
