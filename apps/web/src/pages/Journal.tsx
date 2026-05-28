@@ -16,8 +16,11 @@ export default function Journal() {
   const trades = useTradeStore(state => state.trades);
   const loadUserTrades = useTradeStore(state => state.loadUserTrades);
   const addTrade = useTradeStore(state => state.addTrade);
+  const closeTrade = useTradeStore(state => state.closeTrade);
 
   // Form State
+  const [tradeToClose, setTradeToClose] = useState<string | null>(null);
+  const [closeResult, setCloseResult] = useState({ pnlUsd: '', pipsResult: '' });
   const [newTrade, setNewTrade] = useState({
     pair: 'EURUSD',
     direction: 'LONG',
@@ -96,6 +99,15 @@ export default function Journal() {
     });
 
     setIsLogModalOpen(false);
+  };
+
+  const handleCloseTrade = () => {
+    if (!currentUser || !tradeToClose) return;
+    const pnl = parseFloat(closeResult.pnlUsd) || 0;
+    const pips = parseFloat(closeResult.pipsResult) || 0;
+    closeTrade(currentUser.email, tradeToClose, pnl, pips);
+    setTradeToClose(null);
+    setCloseResult({ pnlUsd: '', pipsResult: '' });
   };
 
   return (
@@ -244,7 +256,10 @@ export default function Journal() {
                   </td>
                   <td className="p-4 pr-6 text-right">
                     {trade.status === 'OPEN' ? (
-                      <button className="text-xs font-bold bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg hover:bg-indigo-600 hover:text-white transition-colors">
+                      <button 
+                        onClick={() => setTradeToClose(trade.id)}
+                        className="text-xs font-bold bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg hover:bg-indigo-600 hover:text-white transition-colors"
+                      >
                         Close Trade
                       </button>
                     ) : (
@@ -320,6 +335,34 @@ export default function Journal() {
               </button>
               <button onClick={handleSaveTrade} className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-bold shadow-md">
                 Save Trade
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Close Trade Modal */}
+      {tradeToClose && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 animate-in zoom-in-95 duration-200">
+            <h2 className="text-xl font-bold mb-1">Close Trade</h2>
+            <p className="text-slate-500 mb-6 text-sm">Enter final result of the trade.</p>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Final PnL (USD)</label>
+                <input type="number" step="0.01" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-indigo-500" value={closeResult.pnlUsd} onChange={e => setCloseResult({...closeResult, pnlUsd: e.target.value})} placeholder="e.g. 150.50 or -50.00" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Pips Result</label>
+                <input type="number" step="0.1" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-indigo-500" value={closeResult.pipsResult} onChange={e => setCloseResult({...closeResult, pipsResult: e.target.value})} placeholder="e.g. 25.5 or -10" />
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3 mt-8">
+              <button onClick={() => setTradeToClose(null)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors font-bold">
+                Cancel
+              </button>
+              <button onClick={handleCloseTrade} className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-bold shadow-md">
+                Confirm Close
               </button>
             </div>
           </div>

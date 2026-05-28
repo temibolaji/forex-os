@@ -23,7 +23,7 @@ const server = Fastify({
 
 // Register Plugins
 server.register(cors, {
-  origin: true, // Allow all origins for now (or change to your Vercel URL later)
+  origin: ['http://localhost:5173', 'https://forex-os-web.vercel.app', 'https://forex-os-gnwdsg97a-temibolajis-projects.vercel.app', 'https://forex-os.vercel.app'],
   credentials: true,
 });
 

@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
-import { AlertCircle, Clock, Filter, Check, Calendar } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { AlertCircle, Clock, Filter, Check, Calendar as CalendarIcon, Loader2 } from 'lucide-react';
+import { API_URL } from '../store/authStore';
 
 export default function CalendarComponent() {
   const [filterImpact, setFilterImpact] = useState('ALL');
@@ -8,9 +9,42 @@ export default function CalendarComponent() {
   const [dateFilter, setDateFilter] = useState('ALL'); // ALL, TODAY, TOMORROW, CUSTOM
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
+  const [events, setEvents] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Mock data mimicking the API response
-  const events: any[] = [];
+  useEffect(() => {
+    const fetchCalendar = async () => {
+      try {
+        setIsLoading(true);
+        const res = await fetch(`${API_URL}/api/v1/calendar`);
+        if (!res.ok) throw new Error('Failed to fetch calendar');
+        const data = await res.json();
+        
+        // Transform FF JSON schema to match our UI
+        const transformedEvents = data.map((item: any, index: number) => {
+          let impact = 'LOW';
+          if (item.impact === 'High') impact = 'HIGH';
+          else if (item.impact === 'Medium') impact = 'MEDIUM';
+
+          return {
+            id: String(index),
+            name: item.title,
+            currency: item.country,
+            impact: impact,
+            scheduledAt: item.date, // ISO date string from FF
+            forecast: item.forecast || '-',
+            previous: item.previous || '-',
+          };
+        });
+        setEvents(transformedEvents);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchCalendar();
+  }, []);
 
   const filteredEvents = useMemo(() => {
     return events.filter(e => {
@@ -68,7 +102,7 @@ export default function CalendarComponent() {
         {/* Date Filter selector */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <div className="flex items-center space-x-2 bg-white px-3 py-2.5 border border-slate-200 rounded-xl shadow-sm shrink-0 transition-all hover:border-indigo-200">
-            <Calendar size={16} className="text-slate-400" />
+            <CalendarIcon size={16} className="text-slate-400" />
             <select 
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
@@ -128,59 +162,71 @@ export default function CalendarComponent() {
       </div>
 
       <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50/50 border-b border-slate-100 text-slate-500 text-sm font-medium">
-                <th className="p-4 pl-6 font-medium">Time / Currency</th>
-                <th className="p-4 font-medium">Impact</th>
-                <th className="p-4 font-medium">Event</th>
-                <th className="p-4 font-medium">Actual</th>
-                <th className="p-4 font-medium">Forecast</th>
-                <th className="p-4 pr-6 font-medium">Previous</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredEvents.map((event) => (
-                <tr key={event.id} className="hover:bg-slate-50/80 transition-colors group">
-                  <td className="p-4 pl-6">
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-slate-900 flex items-center gap-1">
-                        <Clock size={14} className="text-slate-400" />
-                        {new Date(event.scheduledAt).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                      <span className="text-xs font-bold mt-1 px-2 py-0.5 bg-slate-100 rounded text-slate-600 w-fit">
-                        {event.currency}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <span className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-semibold ${
-                      event.impact === 'HIGH' ? 'bg-rose-100 text-rose-700' :
-                      event.impact === 'MEDIUM' ? 'bg-amber-100 text-amber-700' :
-                      'bg-slate-100 text-slate-700'
-                    }`}>
-                      {event.impact === 'HIGH' && <AlertCircle size={12} />}
-                      <span>{event.impact}</span>
-                    </span>
-                  </td>
-                  <td className="p-4 font-medium text-slate-900">
-                    {event.name}
-                  </td>
-                  <td className="p-4">
-                    <span className="text-slate-400 text-sm italic">-</span>
-                  </td>
-                  <td className="p-4 text-sm font-medium text-slate-700">
-                    {event.forecast}
-                  </td>
-                  <td className="p-4 pr-6 text-sm text-slate-500">
-                    {event.previous}
-                  </td>
+        {isLoading ? (
+          <div className="py-20 flex flex-col items-center justify-center">
+            <Loader2 className="animate-spin text-indigo-600 mb-4" size={32} />
+            <p className="text-slate-500 font-medium">Loading economic events...</p>
+          </div>
+        ) : filteredEvents.length === 0 ? (
+          <div className="py-20 flex flex-col items-center justify-center">
+            <CalendarIcon className="text-slate-300 mb-4" size={48} />
+            <p className="text-slate-500 font-medium">No events found for this period.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50/50 border-b border-slate-100 text-slate-500 text-sm font-medium">
+                  <th className="p-4 pl-6 font-medium">Time / Currency</th>
+                  <th className="p-4 font-medium">Impact</th>
+                  <th className="p-4 font-medium">Event</th>
+                  <th className="p-4 font-medium">Actual</th>
+                  <th className="p-4 font-medium">Forecast</th>
+                  <th className="p-4 pr-6 font-medium">Previous</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredEvents.map((event) => (
+                  <tr key={event.id} className="hover:bg-slate-50/80 transition-colors group">
+                    <td className="p-4 pl-6">
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-slate-900 flex items-center gap-1">
+                          <Clock size={14} className="text-slate-400" />
+                          {new Date(event.scheduledAt).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        <span className="text-xs font-bold mt-1 px-2 py-0.5 bg-slate-100 rounded text-slate-600 w-fit">
+                          {event.currency}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <span className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-semibold ${
+                        event.impact === 'HIGH' ? 'bg-rose-100 text-rose-700' :
+                        event.impact === 'MEDIUM' ? 'bg-amber-100 text-amber-700' :
+                        'bg-slate-100 text-slate-700'
+                      }`}>
+                        {event.impact === 'HIGH' && <AlertCircle size={12} />}
+                        <span>{event.impact}</span>
+                      </span>
+                    </td>
+                    <td className="p-4 font-medium text-slate-900">
+                      {event.name}
+                    </td>
+                    <td className="p-4">
+                      <span className="text-slate-400 text-sm italic">-</span>
+                    </td>
+                    <td className="p-4 text-sm font-medium text-slate-700">
+                      {event.forecast}
+                    </td>
+                    <td className="p-4 pr-6 text-sm text-slate-500">
+                      {event.previous}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
