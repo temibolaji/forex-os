@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export const API_URL = (import.meta.env.VITE_API_URL || 'https://forex-os.onrender.com').replace(/\/$/, '');
+export const API_URL = (import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3000' : 'https://forex-os.onrender.com')).replace(/\/$/, '');
 
 export interface User {
   id: string;
