@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 
-export const API_URL = import.meta.env.VITE_API_URL || '';
+// Force empty string so all requests use relative paths (e.g. /api/...)
+// This ensures they go through the Vercel proxy in production and Vite proxy in dev.
+export const API_URL = '';
 
 export interface User {
   id: string;
