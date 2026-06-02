@@ -14,6 +14,8 @@ interface AuthState {
   currentUser: User | null;
   error: string | null;
   isLoading: boolean;
+  initialBalance: number;
+  setInitialBalance: (balance: number) => void;
   dailyLossLimit: number | null;
   setDailyLossLimit: (limit: number | null) => void;
   login: (email: string, password: string) => Promise<boolean>;
@@ -27,12 +29,26 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   currentUser: null,
   error: null,
   isLoading: true, // Start true while we check session on load
-  dailyLossLimit: localStorage.getItem('forexos_dll') ? parseFloat(localStorage.getItem('forexos_dll')!) : null,
+  initialBalance: 10000,
+  dailyLossLimit: null,
+
+  setInitialBalance: (balance) => {
+    set({ initialBalance: balance });
+    // Keep it synced locally
+    const user = get().currentUser;
+    if (user) {
+      localStorage.setItem(`forexos_initialBalance_${user.email}`, balance.toString());
+    }
+  },
+
   setDailyLossLimit: (limit) => {
-    if (limit === null) {
-      localStorage.removeItem('forexos_dll');
-    } else {
-      localStorage.setItem('forexos_dll', limit.toString());
+    const user = get().currentUser;
+    if (user) {
+      if (limit === null) {
+        localStorage.removeItem(`forexos_dll_${user.email}`);
+      } else {
+        localStorage.setItem(`forexos_dll_${user.email}`, limit.toString());
+      }
     }
     set({ dailyLossLimit: limit });
   },
@@ -61,7 +77,15 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       }
       
       localStorage.setItem('forexos_token', data.accessToken);
-      set({ currentUser: data.user, isLoading: false });
+      
+      const user = data.user;
+      const initialBalanceStr = localStorage.getItem(`forexos_initialBalance_${user.email}`);
+      const initialBalance = initialBalanceStr ? parseFloat(initialBalanceStr) : 10000;
+      
+      const storedLimit = localStorage.getItem(`forexos_dll_${user.email}`);
+      const dailyLossLimit = storedLimit ? parseFloat(storedLimit) : null;
+      
+      set({ currentUser: user, error: null, isLoading: false, initialBalance, dailyLossLimit });
       return true;
     } catch (err) {
       set({ error: 'Network error occurred. Please try again.', isLoading: false });
@@ -106,7 +130,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       await fetch(`${API_URL}/api/v1/auth/logout`, { method: 'POST', credentials: 'include' });
     } catch(e) {}
     localStorage.removeItem('forexos_token');
-    set({ currentUser: null, error: null, isLoading: false });
+    set({ currentUser: null, error: null, isLoading: false, initialBalance: 10000, dailyLossLimit: null });
   },
 
   checkSession: async () => {
@@ -120,7 +144,15 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         // We need the user payload from the token
         try {
           const payload = JSON.parse(atob(data.accessToken.split('.')[1]));
-          set({ currentUser: { id: payload.sub, email: payload.email }, isLoading: false });
+          const user = { id: payload.sub, email: payload.email };
+          
+          const initialBalanceStr = localStorage.getItem(`forexos_initialBalance_${user.email}`);
+          const initialBalance = initialBalanceStr ? parseFloat(initialBalanceStr) : 10000;
+          
+          const storedLimit = localStorage.getItem(`forexos_dll_${user.email}`);
+          const dailyLossLimit = storedLimit ? parseFloat(storedLimit) : null;
+          
+          set({ currentUser: user, isLoading: false, initialBalance, dailyLossLimit });
         } catch(e) {
           set({ currentUser: null, isLoading: false });
         }

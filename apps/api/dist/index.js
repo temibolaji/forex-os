@@ -39,6 +39,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const fastify_1 = __importDefault(require("fastify"));
 const jwt_1 = __importDefault(require("@fastify/jwt"));
 const cookie_1 = __importDefault(require("@fastify/cookie"));
+const cors_1 = __importDefault(require("@fastify/cors"));
 const dotenv = __importStar(require("dotenv"));
 const auth_1 = __importDefault(require("./routes/auth"));
 const journal_1 = __importDefault(require("./routes/journal"));
@@ -54,6 +55,10 @@ const server = (0, fastify_1.default)({
     logger: true,
 }).withTypeProvider();
 // Register Plugins
+server.register(cors_1.default, {
+    origin: ['http://localhost:5173', 'https://forex-os-web.vercel.app', 'https://forex-os-gnwdsg97a-temibolajis-projects.vercel.app', 'https://forex-os.vercel.app'],
+    credentials: true,
+});
 server.register(cookie_1.default, {
     secret: process.env.COOKIE_SECRET || 'supersecretcookie',
 });
@@ -78,7 +83,10 @@ server.register(sessions_1.default);
 server.register(pipCalc_1.default);
 server.register(analytics_1.default);
 server.register(coach_1.default);
-// Health check route
+// Health check routes
+server.get('/', async () => {
+    return { status: 'ok', service: 'ForexOS API' };
+});
 server.get('/health', async () => {
     return { status: 'ok' };
 });

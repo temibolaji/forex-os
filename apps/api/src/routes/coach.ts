@@ -9,6 +9,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'MISSING_API_
 const CoachChatSchema = {
   body: Type.Object({
     message: Type.String(),
+    trades: Type.Optional(Type.Array(Type.Any())),
   }),
 };
 
@@ -20,7 +21,7 @@ export default async function coachRoutes(server: FastifyInstance) {
       schema: CoachChatSchema,
     },
     async (request, reply) => {
-      const { message } = request.body as any;
+      const { message, trades: requestTrades } = request.body as any;
 
       // Check if it's the dummy key used in the prompt
       if (process.env.GEMINI_API_KEY === 'DUMMY_GEMINI_API_KEY_FALLBACK' || !process.env.GEMINI_API_KEY) {
@@ -30,11 +31,16 @@ export default async function coachRoutes(server: FastifyInstance) {
         });
       }
 
-      // 1. Fetch user's trade history to provide as context
-      const trades = mockTradeEntries.filter(t => t.closedAt !== null).slice(0, 50);
+      // 1. Fetch user's trade history to provide as context (from body)
+      let trades = requestTrades || [];
+      if (trades.length === 0) {
+        trades = mockTradeEntries.filter(t => t.closedAt !== null).slice(0, 50);
+      } else {
+        trades = trades.filter((t: any) => t.status === 'CLOSED').slice(0, 50);
+      }
 
       // Format trades for the prompt
-      const contextData = trades.map(t => ({
+      const contextData = trades.map((t: any) => ({
         pair: t.pair,
         direction: t.direction,
         session: t.session,

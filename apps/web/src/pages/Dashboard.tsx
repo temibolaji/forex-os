@@ -7,6 +7,7 @@ import { useAuthStore } from '../store/authStore';
 export default function Dashboard() {
   const trades = useTradeStore(state => state.trades);
   const dailyLossLimit = useAuthStore(state => state.dailyLossLimit);
+  const initialBalance = useAuthStore(state => state.initialBalance);
   const [isChartExpanded, setIsChartExpanded] = useState(false);
   const [dateFilter, setDateFilter] = useState('all_time');
   const [customStartDate, setCustomStartDate] = useState('');
@@ -105,15 +106,15 @@ export default function Dashboard() {
       .filter(t => t.status === 'CLOSED' && t.pnlUsd !== null)
       .sort((a, b) => new Date(a.openedAt).getTime() - new Date(b.openedAt).getTime());
 
-    let currentBalance = 10000;
+    let currentBalance = initialBalance;
     
     if (closedTrades.length === 0) {
-      return { points: [{ x: 0, y: 50, balance: 10000, pnl: 0, date: new Date().toLocaleDateString() }], pathData: 'M0,50 L100,50', minBalance: 10000, maxBalance: 10000, hasData: false };
+      return { points: [{ x: 0, y: 50, balance: initialBalance, pnl: 0, date: new Date().toLocaleDateString() }], pathData: 'M0,50 L100,50', minBalance: initialBalance, maxBalance: initialBalance, hasData: false, maxDrawdownPct: 0 };
     }
 
-    let minBalance = 10000;
-    let maxBalance = 10000;
-    let peakBalance = 10000;
+    let minBalance = initialBalance;
+    let maxBalance = initialBalance;
+    let peakBalance = initialBalance;
     let maxDrawdownPct = 0;
 
     const dataPoints = closedTrades.map(t => {
@@ -135,7 +136,7 @@ export default function Dashboard() {
 
     // If only one trade, create a line from start to trade
     if (dataPoints.length === 1) {
-      dataPoints.unshift({ date: 'Start', balance: 10000, pnl: 0 });
+      dataPoints.unshift({ date: 'Start', balance: initialBalance, pnl: 0 });
     }
 
     const yRange = maxBalance - minBalance || 100;
@@ -156,7 +157,7 @@ export default function Dashboard() {
   }, [filteredTrades]);
 
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto animate-in fade-in duration-500 font-inter">
+    <div className="p-4 md:p-8 max-w-5xl mx-auto animate-in fade-in duration-500 font-sans">
       {/* Welcome & Filter Banner */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>

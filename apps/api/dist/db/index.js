@@ -41,5 +41,11 @@ const postgres_js_1 = require("drizzle-orm/postgres-js");
 const postgres_1 = __importDefault(require("postgres"));
 const schema = __importStar(require("./schema"));
 const connectionString = process.env.DATABASE_URL || 'postgres://user:password@localhost:5432/forexos';
-const client = (0, postgres_1.default)(connectionString, { prepare: false });
+const isLocal = connectionString.includes('localhost') || connectionString.includes('127.0.0.1');
+const client = (0, postgres_1.default)(connectionString, {
+    prepare: false,
+    ssl: isLocal ? false : 'require',
+    max: 10,
+    connect_timeout: 10
+});
 exports.db = (0, postgres_js_1.drizzle)(client, { schema });

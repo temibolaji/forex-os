@@ -8,7 +8,9 @@ export default function Settings() {
   const currentUser = useAuthStore(state => state.currentUser);
   const dailyLossLimit = useAuthStore(state => state.dailyLossLimit);
   const setDailyLossLimit = useAuthStore(state => state.setDailyLossLimit);
-  
+  const initialBalance = useAuthStore(state => state.initialBalance);
+  const setInitialBalance = useAuthStore(state => state.setInitialBalance);
+
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -16,6 +18,9 @@ export default function Settings() {
 
   const [lossLimitInput, setLossLimitInput] = useState(dailyLossLimit?.toString() || '');
   const [lossLimitMsg, setLossLimitMsg] = useState<{type: 'success' | 'error', text: string} | null>(null);
+
+  const [balanceInput, setBalanceInput] = useState(initialBalance.toString());
+  const [balanceMsg, setBalanceMsg] = useState<{type: 'success' | 'error', text: string} | null>(null);
 
   const [showClearDataModal, setShowClearDataModal] = useState(false);
 
@@ -74,8 +79,20 @@ export default function Settings() {
     setLossLimitMsg({ type: 'success', text: 'Daily loss limit updated.' });
   };
 
+  const handleBalanceSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setBalanceMsg(null);
+    const val = parseFloat(balanceInput);
+    if (isNaN(val) || val < 0) {
+      setBalanceMsg({ type: 'error', text: 'Please enter a valid positive number.' });
+      return;
+    }
+    setInitialBalance(val);
+    setBalanceMsg({ type: 'success', text: 'Initial balance updated.' });
+  };
+
   return (
-    <div className="p-4 md:p-8 max-w-3xl mx-auto animate-in fade-in duration-500 font-inter">
+    <div className="p-4 md:p-8 max-w-3xl mx-auto animate-in fade-in duration-500 font-sans">
       <div className="mb-8">
         <h1 className="text-3xl font-display font-bold text-white tracking-tight flex items-center gap-3">
           <SettingsIcon className="text-indigo-400" size={28} />
@@ -122,6 +139,40 @@ export default function Settings() {
                 </button>
               </div>
               <p className="text-xs text-slate-500 mt-2">Leave blank to disable. If your daily loss exceeds this amount, the dashboard will warn you to stop trading.</p>
+            </div>
+          </form>
+
+          <form onSubmit={handleBalanceSubmit} className="space-y-4 max-w-md mt-8 border-t border-white/5 pt-8">
+            {balanceMsg && (
+              <div className={`p-4 rounded-xl flex items-center gap-3 text-sm font-bold ${
+                balanceMsg.type === 'success' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+              }`}>
+                {balanceMsg.type === 'success' ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
+                {balanceMsg.text}
+              </div>
+            )}
+            
+            <div>
+              <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Initial Balance (USD)</label>
+              <div className="flex gap-3">
+                <input 
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  required
+                  placeholder="e.g. 10000"
+                  value={balanceInput}
+                  onChange={e => setBalanceInput(e.target.value)}
+                  className="w-full bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl px-4 py-3 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium shadow-inner"
+                />
+                <button 
+                  type="submit"
+                  className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-[0.98]"
+                >
+                  Save
+                </button>
+              </div>
+              <p className="text-xs text-slate-500 mt-2">Sets the starting baseline for your dashboard equity curve and drawdown metrics.</p>
             </div>
           </form>
         </div>

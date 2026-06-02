@@ -9,6 +9,7 @@ const genAI = new generative_ai_1.GoogleGenerativeAI(process.env.GEMINI_API_KEY 
 const CoachChatSchema = {
     body: typebox_1.Type.Object({
         message: typebox_1.Type.String(),
+        trades: typebox_1.Type.Optional(typebox_1.Type.Array(typebox_1.Type.Any())),
     }),
 };
 async function coachRoutes(server) {
@@ -16,7 +17,7 @@ async function coachRoutes(server) {
         preValidation: [server.authenticate],
         schema: CoachChatSchema,
     }, async (request, reply) => {
-        const { message } = request.body;
+        const { message, trades: requestTrades } = request.body;
         // Check if it's the dummy key used in the prompt
         if (process.env.GEMINI_API_KEY === 'DUMMY_GEMINI_API_KEY_FALLBACK' || !process.env.GEMINI_API_KEY) {
             // Return mock coach response
@@ -24,10 +25,16 @@ async function coachRoutes(server) {
                 reply: `**Mock AI Coach Mode**\n\nI see you asked: "${message}".\n\nSince you are using the local mock environment without a valid Gemini API key, I am returning a simulated response! To get real AI insights based on your actual journal data, please provide a valid Google Gemini API key in your \`.env\` file.`,
             });
         }
-        // 1. Fetch user's trade history to provide as context
-        const trades = journal_1.mockTradeEntries.filter(t => t.closedAt !== null).slice(0, 50);
+        // 1. Fetch user's trade history to provide as context (from body)
+        let trades = requestTrades || [];
+        if (trades.length === 0) {
+            trades = journal_1.mockTradeEntries.filter(t => t.closedAt !== null).slice(0, 50);
+        }
+        else {
+            trades = trades.filter((t) => t.status === 'CLOSED').slice(0, 50);
+        }
         // Format trades for the prompt
-        const contextData = trades.map(t => ({
+        const contextData = trades.map((t) => ({
             pair: t.pair,
             direction: t.direction,
             session: t.session,

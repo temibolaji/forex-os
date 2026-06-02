@@ -1,63 +1,20 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = calendarRoutes;
-const typebox_1 = require("@sinclair/typebox");
-const CalendarQuerySchema = {
-    querystring: typebox_1.Type.Object({
-        from: typebox_1.Type.Optional(typebox_1.Type.String({ format: 'date-time' })),
-        to: typebox_1.Type.Optional(typebox_1.Type.String({ format: 'date-time' })),
-        currencies: typebox_1.Type.Optional(typebox_1.Type.String()), // Comma separated, e.g., "USD,EUR"
-        impact: typebox_1.Type.Optional(typebox_1.Type.Union([
-            typebox_1.Type.Literal('HIGH'),
-            typebox_1.Type.Literal('MEDIUM'),
-            typebox_1.Type.Literal('LOW'),
-            typebox_1.Type.Literal('ALL')
-        ])),
-    })
-};
-async function calendarRoutes(server) {
-    server.get('/api/v1/calendar', {
-        preValidation: [server.authenticate],
-        schema: CalendarQuerySchema,
-    }, async (request, reply) => {
-        const { from, to, currencies, impact } = request.query;
-        // Simple mock data fallback
-        let events = [
-            {
-                id: '1',
-                name: 'Nonfarm Payrolls',
-                currency: 'USD',
-                impact: 'HIGH',
-                scheduledAt: new Date(Date.now() + 86400000).toISOString(),
-                forecast: '180K',
-                previous: '150K',
-                actual: null,
-            },
-            {
-                id: '2',
-                name: 'ECB Interest Rate Decision',
-                currency: 'EUR',
-                impact: 'HIGH',
-                scheduledAt: new Date(Date.now() + 172800000).toISOString(),
-                forecast: '4.5%',
-                previous: '4.5%',
-                actual: null,
+async function calendarRoutes(fastify) {
+    fastify.get('/api/v1/calendar', async (request, reply) => {
+        try {
+            // Proxy the request to the free Forex Factory JSON feed
+            const response = await fetch('https://nfs.faireconomy.media/ff_calendar_thisweek.json');
+            if (!response.ok) {
+                throw new Error(`Failed to fetch calendar data: ${response.statusText}`);
             }
-        ];
-        // Filter events
-        if (currencies) {
-            const allowedCurrencies = currencies.split(',').map((c) => c.toUpperCase().trim());
-            events = events.filter((e) => allowedCurrencies.includes(e.currency));
+            const data = await response.json();
+            return reply.send(data);
         }
-        if (impact && impact !== 'ALL') {
-            events = events.filter((e) => e.impact === impact);
+        catch (error) {
+            request.log.error(error);
+            return reply.status(500).send({ error: 'Failed to fetch economic calendar' });
         }
-        if (from) {
-            events = events.filter((e) => new Date(e.scheduledAt) >= new Date(from));
-        }
-        if (to) {
-            events = events.filter((e) => new Date(e.scheduledAt) <= new Date(to));
-        }
-        return reply.send({ data: events });
     });
 }

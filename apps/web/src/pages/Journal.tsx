@@ -298,12 +298,12 @@ export default function Journal() {
             <div className="space-y-5">
               <div className="grid grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Pair</label>
-                  <input type="text" className="w-full px-4 py-2.5 bg-slate-950/50 border border-white/10 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-white font-medium" value={newTrade.pair} onChange={e => setNewTrade({...newTrade, pair: e.target.value})} placeholder="e.g. EURUSD" />
+                  <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Pair</label>
+                  <input type="text" className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium" value={newTrade.pair} onChange={e => setNewTrade({...newTrade, pair: e.target.value})} placeholder="e.g. EURUSD" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Direction</label>
-                  <select className="w-full px-4 py-2.5 bg-slate-950/50 border border-white/10 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-white font-medium cursor-pointer" value={newTrade.direction} onChange={e => setNewTrade({...newTrade, direction: e.target.value})}>
+                  <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Direction</label>
+                  <select className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium cursor-pointer" value={newTrade.direction} onChange={e => setNewTrade({...newTrade, direction: e.target.value})}>
                     <option value="LONG" className="bg-slate-900">LONG</option>
                     <option value="SHORT" className="bg-slate-900">SHORT</option>
                   </select>
@@ -312,27 +312,27 @@ export default function Journal() {
 
               <div className="grid grid-cols-3 gap-5">
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Entry</label>
-                  <input type="number" step="0.00001" className="w-full px-4 py-2.5 bg-slate-950/50 border border-white/10 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-white font-medium" value={newTrade.entryPrice} onChange={e => setNewTrade({...newTrade, entryPrice: e.target.value})} />
+                  <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Entry</label>
+                  <input type="number" step="0.00001" className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium" value={newTrade.entryPrice} onChange={e => setNewTrade({...newTrade, entryPrice: e.target.value})} />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Stop Loss</label>
-                  <input type="number" step="0.00001" className="w-full px-4 py-2.5 bg-slate-950/50 border border-white/10 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-white font-medium" value={newTrade.slPrice} onChange={e => setNewTrade({...newTrade, slPrice: e.target.value})} />
+                  <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Stop Loss</label>
+                  <input type="number" step="0.00001" className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium" value={newTrade.slPrice} onChange={e => setNewTrade({...newTrade, slPrice: e.target.value})} />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Take Profit</label>
-                  <input type="number" step="0.00001" className="w-full px-4 py-2.5 bg-slate-950/50 border border-white/10 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-white font-medium" value={newTrade.tpPrice} onChange={e => setNewTrade({...newTrade, tpPrice: e.target.value})} />
+                  <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Take Profit</label>
+                  <input type="number" step="0.00001" className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium" value={newTrade.tpPrice} onChange={e => setNewTrade({...newTrade, tpPrice: e.target.value})} />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Lot Size</label>
-                  <input type="number" step="0.01" className="w-full px-4 py-2.5 bg-slate-950/50 border border-white/10 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-white font-medium" value={newTrade.lotSize} onChange={e => setNewTrade({...newTrade, lotSize: e.target.value})} />
+                  <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Lot Size</label>
+                  <input type="number" step="0.01" className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium" value={newTrade.lotSize} onChange={e => setNewTrade({...newTrade, lotSize: e.target.value})} />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Session</label>
-                  <select className="w-full px-4 py-2.5 bg-slate-950/50 border border-white/10 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-white font-medium cursor-pointer" value={newTrade.session} onChange={e => setNewTrade({...newTrade, session: e.target.value})}>
+                  <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Session</label>
+                  <select className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium cursor-pointer" value={newTrade.session} onChange={e => setNewTrade({...newTrade, session: e.target.value})}>
                     <option value="LONDON" className="bg-slate-900">London</option>
                     <option value="NEW_YORK" className="bg-slate-900">New York</option>
                     <option value="TOKYO" className="bg-slate-900">Tokyo</option>
@@ -342,7 +342,7 @@ export default function Journal() {
               </div>
             </div>
 
-            <div className="flex items-center space-x-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
+            <div className="flex items-center justify-end space-x-3 w-full mt-8 overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
               <button 
                 onClick={() => setIsCsvModalOpen(true)}
                 className="flex items-center space-x-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap shadow-sm"
@@ -369,16 +369,16 @@ export default function Journal() {
             <p className="text-slate-400 mb-8 text-sm font-medium">Enter final result of the trade.</p>
             <div className="space-y-5">
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Final PnL (USD)</label>
-                <input type="number" step="0.01" className="w-full px-4 py-2.5 bg-slate-950/50 border border-white/10 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-white font-medium" value={closeResult.pnlUsd} onChange={e => setCloseResult({...closeResult, pnlUsd: e.target.value})} placeholder="e.g. 150.50 or -50.00" />
+                <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Final PnL (USD)</label>
+                <input type="number" step="0.01" className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium" value={closeResult.pnlUsd} onChange={e => setCloseResult({...closeResult, pnlUsd: e.target.value})} placeholder="e.g. 150.50 or -50.00" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Pips Result</label>
-                <input type="number" step="0.1" className="w-full px-4 py-2.5 bg-slate-950/50 border border-white/10 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-white font-medium" value={closeResult.pipsResult} onChange={e => setCloseResult({...closeResult, pipsResult: e.target.value})} placeholder="e.g. 25.5 or -10" />
+                <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Pips Result</label>
+                <input type="number" step="0.1" className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium" value={closeResult.pipsResult} onChange={e => setCloseResult({...closeResult, pipsResult: e.target.value})} placeholder="e.g. 25.5 or -10" />
               </div>
             </div>
-            <div className="flex justify-end space-x-3 mt-10">
-              <button onClick={() => setTradeToClose(null)} className="px-5 py-2.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-bold text-sm">
+              <div className="flex justify-end space-x-3 mt-8">
+                <button onClick={() => setTradeToClose(null)} className="px-5 py-2.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-bold text-sm">
                 Cancel
               </button>
               <button onClick={handleCloseTrade} className="px-5 py-2.5 bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 transition-colors font-bold shadow-lg shadow-indigo-500/20 text-sm">
