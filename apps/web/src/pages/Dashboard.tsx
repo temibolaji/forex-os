@@ -1,10 +1,12 @@
 import { useState, useMemo } from 'react';
-import { TrendingUp, Target, Activity, Award, Calendar, ArrowUpRight, ShieldCheck, Maximize2, X } from 'lucide-react';
+import { TrendingUp, TrendingDown, Target, Activity, Award, Calendar, ArrowUpRight, ShieldCheck, Maximize2, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTradeStore } from '../store/tradeStore';
+import { useAuthStore } from '../store/authStore';
 
 export default function Dashboard() {
   const trades = useTradeStore(state => state.trades);
+  const dailyLossLimit = useAuthStore(state => state.dailyLossLimit);
   const [isChartExpanded, setIsChartExpanded] = useState(false);
   const [dateFilter, setDateFilter] = useState('all_time');
   const [customStartDate, setCustomStartDate] = useState('');
@@ -60,12 +62,26 @@ export default function Dashboard() {
     const profitFactor = grossLoss > 0 ? (grossProfit / grossLoss) : (grossProfit > 0 ? grossProfit : 0);
     const expectancyUsd = closedTrades > 0 ? (totalPnl / closedTrades) : 0;
 
+    // Calculate Today's PnL
+    let todayPnl = 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    filteredTrades.forEach(t => {
+      if (t.status === 'CLOSED' && t.pnlUsd !== null) {
+        const d = new Date(t.openedAt);
+        if (d >= today) {
+          todayPnl += t.pnlUsd;
+        }
+      }
+    });
+
     return {
       totalTrades: filteredTrades.length,
       winRate: winRate.toFixed(1),
       profitFactor: profitFactor.toFixed(2),
       expectancyUsd,
-      totalPnl
+      totalPnl,
+      todayPnl
     };
   }, [filteredTrades]);
 
@@ -97,11 +113,19 @@ export default function Dashboard() {
 
     let minBalance = 10000;
     let maxBalance = 10000;
+    let peakBalance = 10000;
+    let maxDrawdownPct = 0;
 
     const dataPoints = closedTrades.map(t => {
       currentBalance += t.pnlUsd!;
       if (currentBalance < minBalance) minBalance = currentBalance;
       if (currentBalance > maxBalance) maxBalance = currentBalance;
+      
+      if (currentBalance > peakBalance) peakBalance = currentBalance;
+      const drawdown = peakBalance - currentBalance;
+      const drawdownPct = (drawdown / peakBalance) * 100;
+      if (drawdownPct > maxDrawdownPct) maxDrawdownPct = drawdownPct;
+
       return {
         date: new Date(t.openedAt).toLocaleDateString(),
         balance: currentBalance,
@@ -128,7 +152,7 @@ export default function Dashboard() {
 
     const pathData = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
 
-    return { points, pathData, minBalance, maxBalance, hasData: true };
+    return { points, pathData, minBalance, maxBalance, hasData: true, maxDrawdownPct };
   }, [filteredTrades]);
 
   return (
@@ -139,6 +163,16 @@ export default function Dashboard() {
           <h1 className="text-3xl font-display font-bold text-white tracking-tight">Dashboard</h1>
           <p className="text-slate-400 mt-1 font-medium text-sm">Welcome back. Here's your trading performance and structural metrics.</p>
         </div>
+        
+        {dailyLossLimit !== null && metrics.todayPnl <= -dailyLossLimit && (
+          <div className="w-full md:w-auto bg-rose-500/20 border border-rose-500 rounded-xl p-3 flex items-center gap-3 animate-pulse">
+            <ShieldCheck size={24} className="text-rose-500 shrink-0" />
+            <div>
+              <p className="text-rose-400 font-bold text-sm">Daily Loss Limit Reached!</p>
+              <p className="text-rose-400/80 text-xs">Step away from the charts to protect your capital.</p>
+            </div>
+          </div>
+        )}
         
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div className="flex items-center space-x-3 glass-panel p-1.5 rounded-xl border border-white/10 shadow-sm shrink-0 transition-all hover:border-indigo-500/50">
@@ -177,7 +211,7 @@ export default function Dashboard() {
       </div>
 
       {/* High-Level Metrics */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6 mb-8">
         <div className="glass-panel bg-slate-900/40 p-5 rounded-3xl border border-white/5 shadow-sm relative overflow-hidden group hover:border-indigo-500/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/10">
           <div className="absolute top-0 right-0 w-16 h-16 bg-indigo-500/10 rounded-bl-full transition-transform duration-300 group-hover:scale-110"></div>
           <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5">
@@ -210,7 +244,15 @@ export default function Dashboard() {
           <div className="text-3xl font-display font-black text-white">${metrics.expectancyUsd.toFixed(2)}</div>
         </div>
 
-        <div className="bg-gradient-to-br from-indigo-500 to-indigo-700 p-5 rounded-3xl shadow-lg relative overflow-hidden col-span-2 md:col-span-1 group hover:shadow-indigo-500/40 transition-all duration-300 hover:-translate-y-1">
+        <div className="glass-panel bg-slate-900/40 p-5 rounded-3xl border border-white/5 shadow-sm relative overflow-hidden group hover:border-rose-500/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-rose-500/10">
+          <div className="absolute top-0 right-0 w-16 h-16 bg-rose-500/10 rounded-bl-full transition-transform duration-300 group-hover:scale-110"></div>
+          <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5">
+            <TrendingDown size={14} className="text-rose-400" /> Max Drawdown
+          </div>
+          <div className="text-3xl font-display font-black text-white">{(equityData.maxDrawdownPct || 0).toFixed(1)}%</div>
+        </div>
+
+        <div className="bg-gradient-to-br from-indigo-500 to-indigo-700 p-5 rounded-3xl shadow-lg relative overflow-hidden col-span-2 md:col-span-1 lg:col-span-1 group hover:shadow-indigo-500/40 transition-all duration-300 hover:-translate-y-1">
           <div className="absolute top-[-50%] right-[-20%] w-full h-full bg-white/20 rounded-full blur-2xl pointer-events-none transition-transform duration-500 group-hover:scale-110"></div>
           <div className="text-indigo-200 text-[10px] font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5">
             <ShieldCheck size={14} className="text-indigo-200" /> Net Profit

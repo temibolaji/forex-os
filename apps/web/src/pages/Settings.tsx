@@ -6,11 +6,16 @@ import { Settings as SettingsIcon, AlertTriangle, KeyRound, ShieldAlert, CheckCi
 export default function Settings() {
   const resetUserData = useTradeStore(state => state.resetUserData);
   const currentUser = useAuthStore(state => state.currentUser);
+  const dailyLossLimit = useAuthStore(state => state.dailyLossLimit);
+  const setDailyLossLimit = useAuthStore(state => state.setDailyLossLimit);
   
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [passwordMsg, setPasswordMsg] = useState<{type: 'success' | 'error', text: string} | null>(null);
+
+  const [lossLimitInput, setLossLimitInput] = useState(dailyLossLimit?.toString() || '');
+  const [lossLimitMsg, setLossLimitMsg] = useState<{type: 'success' | 'error', text: string} | null>(null);
 
   const [showClearDataModal, setShowClearDataModal] = useState(false);
 
@@ -52,6 +57,23 @@ export default function Settings() {
     setShowClearDataModal(false);
   };
 
+  const handleLossLimitSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLossLimitMsg(null);
+    if (!lossLimitInput) {
+      setDailyLossLimit(null);
+      setLossLimitMsg({ type: 'success', text: 'Daily loss limit disabled.' });
+      return;
+    }
+    const val = parseFloat(lossLimitInput);
+    if (isNaN(val) || val < 0) {
+      setLossLimitMsg({ type: 'error', text: 'Please enter a valid positive number.' });
+      return;
+    }
+    setDailyLossLimit(val);
+    setLossLimitMsg({ type: 'success', text: 'Daily loss limit updated.' });
+  };
+
   return (
     <div className="p-4 md:p-8 max-w-3xl mx-auto animate-in fade-in duration-500 font-inter">
       <div className="mb-8">
@@ -63,6 +85,47 @@ export default function Settings() {
       </div>
 
       <div className="space-y-8">
+        {/* Risk Management Section */}
+        <div className="glass-panel bg-slate-900/40 rounded-3xl p-6 md:p-8 border border-white/10 shadow-xl shadow-black/20">
+          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+            <ShieldAlert size={20} className="text-indigo-400" />
+            Risk Management
+          </h2>
+          
+          <form onSubmit={handleLossLimitSubmit} className="space-y-4 max-w-md">
+            {lossLimitMsg && (
+              <div className={`p-4 rounded-xl flex items-center gap-3 text-sm font-bold ${
+                lossLimitMsg.type === 'success' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+              }`}>
+                {lossLimitMsg.type === 'success' ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
+                {lossLimitMsg.text}
+              </div>
+            )}
+            
+            <div>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Daily Loss Limit (USD)</label>
+              <div className="flex gap-3">
+                <input 
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="e.g. 100"
+                  value={lossLimitInput}
+                  onChange={e => setLossLimitInput(e.target.value)}
+                  className="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-white font-medium shadow-inner"
+                />
+                <button 
+                  type="submit"
+                  className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-[0.98]"
+                >
+                  Save
+                </button>
+              </div>
+              <p className="text-xs text-slate-500 mt-2">Leave blank to disable. If your daily loss exceeds this amount, the dashboard will warn you to stop trading.</p>
+            </div>
+          </form>
+        </div>
+
         {/* Change Password Section */}
         <div className="glass-panel bg-slate-900/40 rounded-3xl p-6 md:p-8 border border-white/10 shadow-xl shadow-black/20">
           <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">

@@ -15,6 +15,7 @@ import Simulator from './pages/Simulator';
 import Coach from './pages/Coach';
 import Wiki from './pages/Wiki';
 import Settings from './pages/Settings';
+import Charts from './pages/Charts';
 import { useAuthStore } from './store/authStore';
 
 const queryClient = new QueryClient();
@@ -69,6 +70,9 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           </NavLink>
           
           <div className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-3 mt-8 px-3">Tools</div>
+          <NavLink to="/charts" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 ${isActive ? 'bg-indigo-500/15 text-indigo-400 shadow-sm border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
+            <BarChart3 size={18} /> <span>Charts</span>
+          </NavLink>
           <NavLink to="/calendar" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 ${isActive ? 'bg-indigo-500/15 text-indigo-400 shadow-sm border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
             <CalendarIcon size={18} /> <span>Calendar</span>
           </NavLink>
@@ -191,6 +195,7 @@ function App() {
           {/* Secure Private Routes */}
           <Route path="/" element={<Navigate to="/journal" replace />} />
           <Route path="/journal" element={<ProtectedRoute><AppLayout><Journal /></AppLayout></ProtectedRoute>} />
+          <Route path="/charts" element={<ProtectedRoute><AppLayout><Charts /></AppLayout></ProtectedRoute>} />
           <Route path="/position-size" element={<ProtectedRoute><AppLayout><PositionSizer /></AppLayout></ProtectedRoute>} />
           <Route path="/calendar" element={<ProtectedRoute><AppLayout><Calendar /></AppLayout></ProtectedRoute>} />
           <Route path="/sessions" element={<ProtectedRoute><AppLayout><Sessions /></AppLayout></ProtectedRoute>} />

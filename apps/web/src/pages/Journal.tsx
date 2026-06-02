@@ -1,10 +1,12 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Plus, TrendingUp, TrendingDown, Clock, Search, Filter, Calendar } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Clock, Search, Filter, Calendar, UploadCloud } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useTradeStore } from '../store/tradeStore';
+import CSVImporterModal from '../components/CSVImporterModal';
 
 export default function Journal() {
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+  const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL'); // ALL, OPEN, CLOSED
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -272,8 +274,10 @@ export default function Journal() {
               ))}
               {filteredTrades.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="p-12 text-center text-slate-500 font-medium text-sm">
-                    No trades match your filters.
+                  <td colSpan={7} className="p-12">
+                    <div className="mt-8 text-center text-slate-500 text-sm">
+                      No trades logged yet. Start by logging your first trade or import from CSV!
+                    </div>
                   </td>
                 </tr>
               )}
@@ -281,6 +285,8 @@ export default function Journal() {
           </table>
         </div>
       </div>
+
+      <CSVImporterModal isOpen={isCsvModalOpen} onClose={() => setIsCsvModalOpen(false)} />
 
       {/* Log Trade Modal */}
       {isLogModalOpen && (
@@ -336,7 +342,14 @@ export default function Journal() {
               </div>
             </div>
 
-            <div className="flex justify-end space-x-3 mt-10">
+            <div className="flex items-center space-x-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
+              <button 
+                onClick={() => setIsCsvModalOpen(true)}
+                className="flex items-center space-x-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap shadow-sm"
+              >
+                <UploadCloud size={18} />
+                <span>Import CSV</span>
+              </button>
               <button onClick={() => setIsLogModalOpen(false)} className="px-5 py-2.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-bold text-sm">
                 Cancel
               </button>

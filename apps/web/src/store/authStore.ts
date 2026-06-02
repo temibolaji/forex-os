@@ -14,6 +14,8 @@ interface AuthState {
   currentUser: User | null;
   error: string | null;
   isLoading: boolean;
+  dailyLossLimit: number | null;
+  setDailyLossLimit: (limit: number | null) => void;
   login: (email: string, password: string) => Promise<boolean>;
   register: (email: string, password: string, currency: string) => Promise<boolean>;
   logout: () => Promise<void>;
@@ -25,6 +27,15 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   currentUser: null,
   error: null,
   isLoading: true, // Start true while we check session on load
+  dailyLossLimit: localStorage.getItem('forexos_dll') ? parseFloat(localStorage.getItem('forexos_dll')!) : null,
+  setDailyLossLimit: (limit) => {
+    if (limit === null) {
+      localStorage.removeItem('forexos_dll');
+    } else {
+      localStorage.setItem('forexos_dll', limit.toString());
+    }
+    set({ dailyLossLimit: limit });
+  },
 
   login: async (email, password) => {
     set({ error: null, isLoading: true });

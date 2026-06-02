@@ -22,6 +22,7 @@ interface TradeState {
   clearTrades: () => void;
   resetUserData: (userEmail: string) => void;
   closeTrade: (userEmail: string, tradeId: string, pnlUsd: number, pipsResult: number) => void;
+  addTradesBulk: (userEmail: string, trades: Omit<Trade, 'id'>[]) => void;
 }
 
 export const useTradeStore = create<TradeState>((set, get) => ({
@@ -68,6 +69,18 @@ export const useTradeStore = create<TradeState>((set, get) => ({
         ? { ...trade, status: 'CLOSED' as const, pnlUsd, pipsResult } 
         : trade
     );
+    localStorage.setItem(key, JSON.stringify(updated));
+    set({ trades: updated });
+  },
+
+  addTradesBulk: (userEmail, trades) => {
+    const key = `forexos_trades_${userEmail.trim().toLowerCase()}`;
+    const newTrades = trades.map(t => ({
+      ...t,
+      id: Math.random().toString(36).substring(2, 9),
+    }));
+    
+    const updated = [...newTrades, ...get().trades];
     localStorage.setItem(key, JSON.stringify(updated));
     set({ trades: updated });
   }
