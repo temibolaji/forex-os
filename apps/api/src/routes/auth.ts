@@ -115,8 +115,8 @@ export default async function authRoutes(server: FastifyInstance) {
     
     reply.setCookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: true,
+      sameSite: 'none',
       path: '/api/v1/auth',
       maxAge: REFRESH_TTL,
     });
@@ -176,7 +176,11 @@ export default async function authRoutes(server: FastifyInstance) {
     const refreshToken = request.cookies.refreshToken;
     if (refreshToken) {
       await redis.del(`rt:${refreshToken}`);
-      reply.clearCookie('refreshToken', { path: '/api/v1/auth' });
+      reply.clearCookie('refreshToken', { 
+        path: '/api/v1/auth',
+        secure: true,
+        sameSite: 'none'
+      });
     }
     return reply.code(200).send({ message: 'Logged out' });
   });

@@ -157,9 +157,43 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           set({ currentUser: null, isLoading: false });
         }
       } else {
+        // Fallback: check if we have a valid token in localStorage
+        const token = localStorage.getItem('forexos_token');
+        if (token) {
+          try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            if (payload.exp * 1000 > Date.now()) {
+              const user = { id: payload.sub, email: payload.email };
+              const initialBalanceStr = localStorage.getItem(`forexos_initialBalance_${user.email}`);
+              const initialBalance = initialBalanceStr ? parseFloat(initialBalanceStr) : 10000;
+              const storedLimit = localStorage.getItem(`forexos_dll_${user.email}`);
+              const dailyLossLimit = storedLimit ? parseFloat(storedLimit) : null;
+              
+              set({ currentUser: user, isLoading: false, initialBalance, dailyLossLimit });
+              return;
+            }
+          } catch(e) {}
+        }
         set({ currentUser: null, isLoading: false });
       }
     } catch (err) {
+      // Fallback: check if we have a valid token in localStorage on network error
+      const token = localStorage.getItem('forexos_token');
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          if (payload.exp * 1000 > Date.now()) {
+            const user = { id: payload.sub, email: payload.email };
+            const initialBalanceStr = localStorage.getItem(`forexos_initialBalance_${user.email}`);
+            const initialBalance = initialBalanceStr ? parseFloat(initialBalanceStr) : 10000;
+            const storedLimit = localStorage.getItem(`forexos_dll_${user.email}`);
+            const dailyLossLimit = storedLimit ? parseFloat(storedLimit) : null;
+            
+            set({ currentUser: user, isLoading: false, initialBalance, dailyLossLimit });
+            return;
+          }
+        } catch(e) {}
+      }
       set({ currentUser: null, isLoading: false });
     }
   },
