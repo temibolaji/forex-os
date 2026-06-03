@@ -101,6 +101,63 @@ export default function Dashboard() {
     return max > 0 ? max : 1;
   }, [sessionPerformance]);
 
+  // Strategy Performance Logic
+  const strategyPerformance = useMemo(() => {
+    const performance: Record<string, { pnl: number; winCount: number; lossCount: number; total: number }> = {};
+    
+    filteredTrades.forEach(t => {
+      if (t.status === 'CLOSED' && t.pnlUsd !== null && t.setupTags && t.setupTags.length > 0) {
+        t.setupTags.forEach(tag => {
+          if (!performance[tag]) {
+            performance[tag] = { pnl: 0, winCount: 0, lossCount: 0, total: 0 };
+          }
+          performance[tag].total += 1;
+          performance[tag].pnl += t.pnlUsd!;
+          if (t.pnlUsd! > 0) performance[tag].winCount += 1;
+          else if (t.pnlUsd! < 0) performance[tag].lossCount += 1;
+        });
+      }
+    });
+    
+    return Object.entries(performance)
+      .map(([tag, data]) => ({
+        tag,
+        ...data,
+        winRate: data.total > 0 ? (data.winCount / data.total) * 100 : 0
+      }))
+      .sort((a, b) => b.pnl - a.pnl);
+  }, [filteredTrades]);
+
+  // Currency Exposure Logic
+  const currencyExposure = useMemo(() => {
+    const exposure: Record<string, number> = {};
+    const openTrades = trades.filter(t => t.status === 'OPEN');
+    
+    openTrades.forEach(t => {
+       // Assuming standard 6 char pair like EURUSD
+       const cleanedPair = t.pair.replace(/[^A-Z]/gi, '').toUpperCase();
+       if (cleanedPair.length >= 6) {
+         const base = cleanedPair.substring(0, 3);
+         const quote = cleanedPair.substring(3, 6);
+         
+         if (!exposure[base]) exposure[base] = 0;
+         if (!exposure[quote]) exposure[quote] = 0;
+         
+         if (t.direction === 'LONG') {
+           exposure[base] += 1;
+           exposure[quote] -= 1;
+         } else {
+           exposure[base] -= 1;
+           exposure[quote] += 1;
+         }
+       }
+    });
+    
+    return Object.entries(exposure)
+      .filter(([_, val]) => val !== 0)
+      .sort((a, b) => b[1] - a[1]);
+  }, [trades]);
+
   const equityData = useMemo(() => {
     const closedTrades = [...filteredTrades]
       .filter(t => t.status === 'CLOSED' && t.pnlUsd !== null)
@@ -414,6 +471,85 @@ export default function Dashboard() {
                 <div className={`h-full ${sessionPerformance.SYDNEY >= 0 ? 'bg-sky-500' : 'bg-rose-500'} rounded-full`} style={{ width: Math.max(5, (Math.abs(sessionPerformance.SYDNEY) / maxSessionPerf) * 100) + '%' }}></div>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Strategy Performance */}
+        <div className="xl:col-span-2 glass-panel bg-slate-900/40 p-6 md:p-8 rounded-[2rem] border border-white/5 shadow-sm space-y-6">
+          <div className="flex justify-between items-center border-b border-white/5 pb-4">
+            <h2 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
+              <Award size={16} className="text-emerald-400" /> Strategy Performance
+            </h2>
+          </div>
+          <div className="overflow-x-auto custom-scrollbar">
+            {strategyPerformance.length === 0 ? (
+              <div className="py-8 text-center text-slate-500 font-medium text-sm border border-dashed border-white/10 rounded-2xl">No strategy tags found in closed trades.</div>
+            ) : (
+              <table className="w-full text-left border-collapse min-w-[400px]">
+                <thead>
+                  <tr className="border-b border-white/5 text-slate-500 text-[10px] font-bold uppercase tracking-widest">
+                    <th className="pb-3 pr-4">Strategy Tag</th>
+                    <th className="pb-3 px-4">Trades</th>
+                    <th className="pb-3 px-4">Win Rate</th>
+                    <th className="pb-3 text-right pl-4">Net PnL</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {strategyPerformance.map((strat, i) => (
+                    <tr key={i} className="hover:bg-white/[0.02] transition-colors">
+                      <td className="py-3 pr-4 font-display font-bold text-white">
+                        <span className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-1 rounded-md text-xs">{strat.tag}</span>
+                      </td>
+                      <td className="py-3 px-4 text-slate-300 font-medium">{strat.total}</td>
+                      <td className="py-3 px-4 text-slate-300 font-medium">
+                        <span className={strat.winRate >= 50 ? 'text-emerald-400' : 'text-rose-400'}>{strat.winRate.toFixed(1)}%</span>
+                      </td>
+                      <td className={`py-3 pl-4 text-right font-display font-bold ${strat.pnl > 0 ? 'text-emerald-400' : strat.pnl < 0 ? 'text-rose-400' : 'text-slate-500'}`}>
+                        {strat.pnl > 0 ? `+$${strat.pnl.toFixed(2)}` : `-$${Math.abs(strat.pnl).toFixed(2)}`}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+
+        {/* Currency Exposure Tracker */}
+        <div className="glass-panel bg-slate-900/40 p-6 md:p-8 rounded-[2rem] border border-white/5 shadow-sm space-y-6">
+          <div className="flex justify-between items-center border-b border-white/5 pb-4">
+            <h2 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
+              <Activity size={16} className="text-rose-400" /> Live Exposure
+            </h2>
+          </div>
+          
+          <div className="space-y-4">
+            {currencyExposure.length === 0 ? (
+              <div className="py-8 text-center text-slate-500 font-medium text-sm border border-dashed border-white/10 rounded-2xl">No open trades.</div>
+            ) : (
+              <>
+                {currencyExposure.some(c => Math.abs(c[1]) > 1) && (
+                  <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-3 flex items-start gap-3">
+                    <ShieldCheck size={18} className="text-rose-400 mt-0.5 shrink-0" />
+                    <div>
+                      <h4 className="text-xs font-bold text-rose-400 uppercase tracking-wider mb-1">Heavy Exposure Warning</h4>
+                      <p className="text-[11px] text-rose-300/80 font-medium leading-relaxed">You have multiple open positions exposed to the same currency. This increases risk.</p>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="space-y-3 mt-2">
+                  {currencyExposure.map(([currency, exposure]) => (
+                    <div key={currency} className="flex justify-between items-center">
+                      <span className="font-bold text-slate-300 text-xs">{currency}</span>
+                      <span className={`text-xs font-bold px-2 py-1 rounded-md border ${exposure > 0 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'}`}>
+                        {exposure > 0 ? `LONG (+${exposure})` : `SHORT (${exposure})`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
 

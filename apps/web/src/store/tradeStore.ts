@@ -12,6 +12,7 @@ export interface Trade {
   pipsResult: number | null;
   pnlUsd: number | null;
   status: 'OPEN' | 'CLOSED';
+  setupTags?: string[];
   openedAt: string;
 }
 

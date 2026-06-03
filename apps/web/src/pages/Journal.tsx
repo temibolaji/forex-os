@@ -30,7 +30,8 @@ export default function Journal() {
     slPrice: '',
     tpPrice: '',
     lotSize: '',
-    session: 'NEW_YORK'
+    session: 'NEW_YORK',
+    setupTags: ''
   });
 
   useEffect(() => {
@@ -85,6 +86,7 @@ export default function Journal() {
       tpPrice: parseFloat(newTrade.tpPrice) || 1.0950,
       lotSize: parseFloat(newTrade.lotSize) || 0.1,
       session: newTrade.session,
+      setupTags: newTrade.setupTags.trim() ? newTrade.setupTags.split(',').map(t => t.trim().toUpperCase()) : [],
       pipsResult: null,
       pnlUsd: null,
       status: 'OPEN'
@@ -97,7 +99,8 @@ export default function Journal() {
       slPrice: '',
       tpPrice: '',
       lotSize: '',
-      session: 'NEW_YORK'
+      session: 'NEW_YORK',
+      setupTags: ''
     });
 
     setIsLogModalOpen(false);
@@ -339,6 +342,11 @@ export default function Journal() {
                     <option value="SYDNEY" className="bg-slate-900">Sydney</option>
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Strategy Tags (comma separated)</label>
+                <input type="text" className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium" value={newTrade.setupTags} onChange={e => setNewTrade({...newTrade, setupTags: e.target.value})} placeholder="e.g. SMC, Breakout, Pullback" />
               </div>
             </div>
 
