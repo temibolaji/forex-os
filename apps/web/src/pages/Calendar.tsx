@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { AlertCircle, Clock, Filter, Check, Calendar as CalendarIcon, Loader2 } from 'lucide-react';
+import { API_URL } from '../store/authStore';
 
 export default function CalendarComponent() {
   const [filterImpact, setFilterImpact] = useState('ALL');
@@ -22,8 +23,8 @@ export default function CalendarComponent() {
     const fetchCalendar = async () => {
       try {
         setIsLoading(true);
-        // Using Forex Factory's public JSON CDN
-        const res = await fetch('https://nfs.faireconomy.media/ff_calendar_thisweek.json');
+        // Fetch via backend to avoid CORS from Forex Factory
+        const res = await fetch(`${API_URL}/api/v1/calendar`);
         if (!res.ok) throw new Error('Failed to fetch calendar');
         const data = await res.json();
         
