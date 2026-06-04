@@ -13,6 +13,8 @@ export interface Trade {
   pnlUsd: number | null;
   status: 'OPEN' | 'CLOSED';
   setupTags?: string[];
+  screenshotUrl?: string;
+  notes?: string;
   openedAt: string;
 }
 

@@ -31,7 +31,9 @@ export default function Journal() {
     tpPrice: '',
     lotSize: '',
     session: 'NEW_YORK',
-    setupTags: ''
+    setupTags: '',
+    screenshotUrl: '',
+    notes: ''
   });
 
   useEffect(() => {
@@ -87,6 +89,8 @@ export default function Journal() {
       lotSize: parseFloat(newTrade.lotSize) || 0.1,
       session: newTrade.session,
       setupTags: newTrade.setupTags.trim() ? newTrade.setupTags.split(',').map(t => t.trim().toUpperCase()) : [],
+      screenshotUrl: newTrade.screenshotUrl.trim() || undefined,
+      notes: newTrade.notes.trim() || undefined,
       pipsResult: null,
       pnlUsd: null,
       status: 'OPEN'
@@ -100,9 +104,10 @@ export default function Journal() {
       tpPrice: '',
       lotSize: '',
       session: 'NEW_YORK',
-      setupTags: ''
+      setupTags: '',
+      screenshotUrl: '',
+      notes: ''
     });
-
     setIsLogModalOpen(false);
   };
 
@@ -347,6 +352,16 @@ export default function Journal() {
               <div>
                 <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Strategy Tags (comma separated)</label>
                 <input type="text" className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium" value={newTrade.setupTags} onChange={e => setNewTrade({...newTrade, setupTags: e.target.value})} placeholder="e.g. SMC, Breakout, Pullback" />
+              </div>
+              
+              <div>
+                <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Screenshot URL (TradingView Link)</label>
+                <input type="url" className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium" value={newTrade.screenshotUrl} onChange={e => setNewTrade({...newTrade, screenshotUrl: e.target.value})} placeholder="https://www.tradingview.com/x/..." />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Trade Notes</label>
+                <textarea className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium min-h-[80px] resize-y" value={newTrade.notes} onChange={e => setNewTrade({...newTrade, notes: e.target.value})} placeholder="Why did you take this trade? How did you manage it?"></textarea>
               </div>
             </div>
 

@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
 import { AlertCircle, Clock, Filter, Check, Calendar as CalendarIcon, Loader2 } from 'lucide-react';
-import { API_URL } from '../store/authStore';
 
 export default function CalendarComponent() {
   const [filterImpact, setFilterImpact] = useState('ALL');
@@ -11,12 +10,20 @@ export default function CalendarComponent() {
   const [customEndDate, setCustomEndDate] = useState('');
   const [events, setEvents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update current time every minute to keep highlight accurate
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const fetchCalendar = async () => {
       try {
         setIsLoading(true);
-        const res = await fetch(`${API_URL}/api/v1/calendar`);
+        // Using Forex Factory's public JSON CDN
+        const res = await fetch('https://nfs.faireconomy.media/ff_calendar_thisweek.json');
         if (!res.ok) throw new Error('Failed to fetch calendar');
         const data = await res.json();
         
@@ -108,7 +115,7 @@ export default function CalendarComponent() {
               onChange={(e) => setDateFilter(e.target.value)}
               className="bg-transparent text-white text-sm font-semibold focus:outline-none cursor-pointer"
             >
-              <option value="ALL">All Dates</option>
+              <option value="ALL">This Week</option>
               <option value="TODAY">Today</option>
               <option value="TOMORROW">Tomorrow</option>
               <option value="CUSTOM">Custom Range</option>
@@ -148,7 +155,7 @@ export default function CalendarComponent() {
           {isFilterOpen && (
             <div className="absolute left-0 sm:right-0 sm:left-auto mt-2 w-48 bg-slate-900 border border-white/10 rounded-xl shadow-xl z-20 py-2 backdrop-blur-xl">
               <div className="px-4 py-2 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest bg-slate-800/50">Filter by Currency</div>
-              {['ALL', 'USD', 'EUR', 'GBP', 'JPY'].map((curr) => (
+              {['ALL', 'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'NZD'].map((curr) => (
                 <button 
                   key={curr}
                   onClick={() => { setFilterCurrency(curr); setIsFilterOpen(false); }} 
@@ -190,43 +197,51 @@ export default function CalendarComponent() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {filteredEvents.map((event) => (
-                  <tr key={event.id} className="hover:bg-white/5 transition-colors group">
-                    <td className="p-4 pl-6 align-top">
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-white flex items-center gap-1.5 text-sm">
-                          <Clock size={14} className="text-slate-500" />
-                          {new Date(event.scheduledAt).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                {filteredEvents.map((event) => {
+                  const eventTime = new Date(event.scheduledAt).getTime();
+                  const timeDiff = Math.abs(currentTime.getTime() - eventTime);
+                  // Highlight if event is happening within 1 hour from now
+                  const isCurrent = timeDiff <= 60 * 60 * 1000;
+                  
+                  return (
+                    <tr key={event.id} className={`transition-colors group ${isCurrent ? 'bg-indigo-500/10 border-l-4 border-indigo-500' : 'hover:bg-white/5 border-l-4 border-transparent'}`}>
+                      <td className="p-4 pl-4 align-top">
+                        <div className="flex flex-col">
+                          <span className={`font-semibold flex items-center gap-1.5 text-sm ${isCurrent ? 'text-indigo-300' : 'text-white'}`}>
+                            <Clock size={14} className={isCurrent ? 'text-indigo-400 animate-pulse' : 'text-slate-500'} />
+                            {new Date(event.scheduledAt).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          <span className={`text-[10px] font-bold mt-1.5 px-2 py-0.5 rounded border w-fit ${isCurrent ? 'bg-indigo-500/20 border-indigo-500/30 text-indigo-300' : 'bg-slate-800 border-white/10 text-slate-400'}`}>
+                            {event.currency}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="p-4 align-top">
+                        <span className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase border ${
+                          event.impact === 'HIGH' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :
+                          event.impact === 'MEDIUM' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                          'bg-slate-800 text-slate-400 border-white/10'
+                        }`}>
+                          {event.impact === 'HIGH' && <AlertCircle size={12} />}
+                          <span>{event.impact}</span>
                         </span>
-                        <span className="text-[10px] font-bold mt-1.5 px-2 py-0.5 bg-slate-800 rounded border border-white/10 text-slate-400 w-fit">
-                          {event.currency}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="p-4 align-top">
-                      <span className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase border ${
-                        event.impact === 'HIGH' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :
-                        event.impact === 'MEDIUM' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
-                        'bg-slate-800 text-slate-400 border-white/10'
-                      }`}>
-                        {event.impact === 'HIGH' && <AlertCircle size={12} />}
-                        <span>{event.impact}</span>
-                      </span>
-                    </td>
-                    <td className="p-4 font-semibold text-slate-200 text-sm align-top">
-                      {event.name}
-                    </td>
-                    <td className="p-4 align-top">
-                      <span className="text-slate-600 text-sm italic">-</span>
-                    </td>
-                    <td className="p-4 text-sm font-semibold text-slate-300 align-top">
-                      {event.forecast}
-                    </td>
-                    <td className="p-4 pr-6 text-sm text-slate-500 font-medium align-top">
-                      {event.previous}
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className={`p-4 font-semibold text-sm align-top ${isCurrent ? 'text-white' : 'text-slate-200'}`}>
+                        {event.name}
+                        {isCurrent && <span className="ml-2 text-[10px] font-bold uppercase tracking-widest text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded border border-indigo-500/20">Happening Now</span>}
+                      </td>
+                      <td className="p-4 align-top">
+                        <span className="text-slate-600 text-sm italic">-</span>
+                      </td>
+                      <td className="p-4 text-sm font-semibold text-slate-300 align-top">
+                        {event.forecast}
+                      </td>
+                      <td className="p-4 pr-6 text-sm text-slate-500 font-medium align-top">
+                        {event.previous}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

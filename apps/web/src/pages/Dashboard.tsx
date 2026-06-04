@@ -101,6 +101,35 @@ export default function Dashboard() {
     return max > 0 ? max : 1;
   }, [sessionPerformance]);
 
+  const heatmapPerformance = useMemo(() => {
+    // days: 0 = Sun, 1 = Mon ... 6 = Sat
+    // We care about 1,2,3,4,5 (Mon-Fri)
+    const sessions = ['LONDON', 'NEW_YORK', 'TOKYO', 'SYDNEY'];
+    const days = [1, 2, 3, 4, 5]; // Monday to Friday
+    
+    // Initialize structure
+    const grid: Record<number, Record<string, { pnl: number; wins: number; total: number }>> = {};
+    days.forEach(d => {
+      grid[d] = {};
+      sessions.forEach(s => {
+        grid[d][s] = { pnl: 0, wins: 0, total: 0 };
+      });
+    });
+
+    filteredTrades.forEach(t => {
+      if (t.status === 'CLOSED' && t.pnlUsd !== null && t.session) {
+        const d = new Date(t.openedAt).getDay();
+        if (days.includes(d) && sessions.includes(t.session)) {
+          grid[d][t.session].pnl += t.pnlUsd;
+          grid[d][t.session].total += 1;
+          if (t.pnlUsd > 0) grid[d][t.session].wins += 1;
+        }
+      }
+    });
+
+    return grid;
+  }, [filteredTrades]);
+
   // Strategy Performance Logic
   const strategyPerformance = useMemo(() => {
     const performance: Record<string, { pnl: number; winCount: number; lossCount: number; total: number }> = {};
@@ -550,6 +579,83 @@ export default function Dashboard() {
                 </div>
               </>
             )}
+          </div>
+        </div>
+
+        {/* Performance Heatmap Widget */}
+        <div className="xl:col-span-3 glass-panel bg-slate-900/40 p-6 md:p-8 rounded-[2rem] border border-white/5 shadow-sm space-y-6">
+          <div className="flex justify-between items-center border-b border-white/5 pb-4">
+            <h2 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
+              <Calendar size={16} className="text-sky-400" /> Performance Heatmap
+            </h2>
+            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Day vs Session</span>
+          </div>
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full text-left border-collapse min-w-[500px]">
+              <thead>
+                <tr className="border-b border-white/5 text-slate-500 text-[10px] font-bold uppercase tracking-widest">
+                  <th className="pb-3 pr-4 w-24">Day</th>
+                  <th className="pb-3 px-2 text-center w-1/4">London</th>
+                  <th className="pb-3 px-2 text-center w-1/4">New York</th>
+                  <th className="pb-3 px-2 text-center w-1/4">Tokyo</th>
+                  <th className="pb-3 px-2 text-center w-1/4">Sydney</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {[1, 2, 3, 4, 5].map(day => {
+                  const dayNames = ['Sun', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Sat'];
+                  const sessions = ['LONDON', 'NEW_YORK', 'TOKYO', 'SYDNEY'];
+                  return (
+                    <tr key={day} className="group">
+                      <td className="py-3 pr-4 font-display font-bold text-slate-400 text-xs uppercase tracking-wider">{dayNames[day]}</td>
+                      {sessions.map(session => {
+                        const cell = heatmapPerformance[day][session];
+                        const hasTrades = cell.total > 0;
+                        const winRate = hasTrades ? (cell.wins / cell.total) * 100 : 0;
+                        
+                        // Determine color intensity based on PnL
+                        let bgColor = 'bg-slate-800/50';
+                        let textColor = 'text-slate-500';
+                        
+                        if (hasTrades) {
+                          if (cell.pnl > 0) {
+                            if (cell.pnl > 500) bgColor = 'bg-emerald-500/40 border border-emerald-500/50';
+                            else if (cell.pnl > 100) bgColor = 'bg-emerald-500/20 border border-emerald-500/30';
+                            else bgColor = 'bg-emerald-500/10 border border-emerald-500/20';
+                            textColor = 'text-emerald-300';
+                          } else if (cell.pnl < 0) {
+                            if (cell.pnl < -500) bgColor = 'bg-rose-500/40 border border-rose-500/50';
+                            else if (cell.pnl < -100) bgColor = 'bg-rose-500/20 border border-rose-500/30';
+                            else bgColor = 'bg-rose-500/10 border border-rose-500/20';
+                            textColor = 'text-rose-300';
+                          } else {
+                            bgColor = 'bg-slate-700 border border-slate-600';
+                            textColor = 'text-slate-300';
+                          }
+                        }
+
+                        return (
+                          <td key={session} className="p-1.5">
+                            <div className={`h-16 rounded-xl flex flex-col items-center justify-center transition-all ${bgColor}`}>
+                              {hasTrades ? (
+                                <>
+                                  <span className={`font-display font-bold text-sm ${textColor}`}>
+                                    {cell.pnl > 0 ? '+' : ''}${cell.pnl.toFixed(0)}
+                                  </span>
+                                  <span className="text-[10px] font-bold opacity-70 mt-0.5 text-white">{winRate.toFixed(0)}% WR ({cell.total})</span>
+                                </>
+                              ) : (
+                                <span className="text-white/10 text-xs font-bold">-</span>
+                              )}
+                            </div>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
 

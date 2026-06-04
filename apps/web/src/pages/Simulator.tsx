@@ -1,7 +1,10 @@
 import { useState, useMemo } from 'react';
-import { Play, LineChart, AlertTriangle, ShieldCheck, RefreshCw } from 'lucide-react';
+import { Play, LineChart, AlertTriangle, ShieldCheck, RefreshCw, BookOpen, Calculator } from 'lucide-react';
 
 export default function Simulator() {
+  const [activeTab, setActiveTab] = useState<'monte_carlo' | 'paper_trading'>('monte_carlo');
+
+  // --- MONTE CARLO STATE ---
   const [startingBalance, setStartingBalance] = useState('10000');
   const [winRate, setWinRate] = useState('55');
   const [avgWin, setAvgWin] = useState('120');
@@ -9,9 +12,38 @@ export default function Simulator() {
   const [iterations, setIterations] = useState('1000');
   const [tradesCount, setTradesCount] = useState('100');
   const [isRunning, setIsRunning] = useState(false);
-  
-  // Results State
   const [results, setResults] = useState<any>(null);
+
+  // --- PAPER TRADING STATE ---
+  const [paperTrades, setPaperTrades] = useState<Array<{ id: string, pair: string, result: 'WIN' | 'LOSS' | 'BE', pnl: number, notes: string, date: string }>>([]);
+  const [newPaperTrade, setNewPaperTrade] = useState({ pair: 'EURUSD', result: 'WIN', pnl: '', notes: '' });
+
+  const handleAddPaperTrade = () => {
+    if (!newPaperTrade.pnl) return;
+    setPaperTrades([{
+      id: Math.random().toString(),
+      pair: newPaperTrade.pair.toUpperCase(),
+      result: newPaperTrade.result as 'WIN'|'LOSS'|'BE',
+      pnl: parseFloat(newPaperTrade.pnl),
+      notes: newPaperTrade.notes,
+      date: new Date().toISOString()
+    }, ...paperTrades]);
+    setNewPaperTrade({ pair: 'EURUSD', result: 'WIN', pnl: '', notes: '' });
+  };
+
+  const paperStats = useMemo(() => {
+    let equity = 10000;
+    let wins = 0;
+    paperTrades.forEach(t => {
+      equity += t.pnl;
+      if (t.result === 'WIN') wins++;
+    });
+    return {
+      equity,
+      winRate: paperTrades.length > 0 ? (wins / paperTrades.length) * 100 : 0,
+      total: paperTrades.length
+    };
+  }, [paperTrades]);
 
   const runSimulation = () => {
     setIsRunning(true);
@@ -121,15 +153,36 @@ export default function Simulator() {
   }, [results, startingBalance, tradesCount]);
 
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto animate-in fade-in duration-500 font-inter">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Drawdown Simulator</h1>
-        <p className="text-slate-500 mt-1 font-medium">Stress-test your edge and visualize equity fluctuations using Monte Carlo methods.</p>
+    <div className="p-6 md:p-8 lg:p-10 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
+      <div>
+        <h1 className="text-3xl font-display font-black text-white tracking-tight flex items-center gap-3">
+          <LineChart className="text-indigo-400" size={28} />
+          Trade Simulator
+        </h1>
+        <p className="text-slate-400 mt-2 font-medium">Test your strategies through Monte Carlo simulations or manual paper trading.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        {/* Controls Card */}
-        <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6">
+      <div className="flex border-b border-white/5 space-x-6">
+        <button 
+          onClick={() => setActiveTab('monte_carlo')}
+          className={`pb-4 text-sm font-bold tracking-widest uppercase transition-colors relative ${activeTab === 'monte_carlo' ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300'}`}
+        >
+          <div className="flex items-center gap-2"><Calculator size={16} /> Monte Carlo</div>
+          {activeTab === 'monte_carlo' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 rounded-t-full"></div>}
+        </button>
+        <button 
+          onClick={() => setActiveTab('paper_trading')}
+          className={`pb-4 text-sm font-bold tracking-widest uppercase transition-colors relative ${activeTab === 'paper_trading' ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300'}`}
+        >
+          <div className="flex items-center gap-2"><BookOpen size={16} /> Paper Trading Log</div>
+          {activeTab === 'paper_trading' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 rounded-t-full"></div>}
+        </button>
+      </div>
+
+      {activeTab === 'monte_carlo' ? (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Configuration Panel */}
+          <div className="lg:col-span-4 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6">
           <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">Simulation Parameters</h2>
           
           <div className="space-y-5">
@@ -221,7 +274,7 @@ export default function Simulator() {
         </div>
 
         {/* Results / Visual Panel */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-8">
           {results ? (
             <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
               {/* Stats overview banner */}
@@ -332,6 +385,75 @@ export default function Simulator() {
           )}
         </div>
       </div>
+      ) : (
+        <div className="space-y-8 animate-in slide-in-from-right-4 duration-300">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="glass-panel bg-slate-900/40 p-6 rounded-2xl border border-white/5 flex flex-col justify-center items-center">
+              <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-2">Paper Equity</span>
+              <span className="text-3xl font-display font-black text-white">${paperStats.equity.toFixed(2)}</span>
+            </div>
+            <div className="glass-panel bg-slate-900/40 p-6 rounded-2xl border border-white/5 flex flex-col justify-center items-center">
+              <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-2">Paper Win Rate</span>
+              <span className={`text-3xl font-display font-black ${paperStats.winRate >= 50 ? 'text-emerald-400' : 'text-rose-400'}`}>{paperStats.winRate.toFixed(1)}%</span>
+            </div>
+            <div className="glass-panel bg-slate-900/40 p-6 rounded-2xl border border-white/5 flex flex-col justify-center items-center">
+              <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-2">Total Paper Trades</span>
+              <span className="text-3xl font-display font-black text-white">{paperStats.total}</span>
+            </div>
+          </div>
+
+          <div className="glass-panel bg-slate-900/40 p-6 rounded-2xl border border-white/5 space-y-4">
+            <h3 className="font-bold text-white uppercase tracking-widest text-xs mb-4">Log a Paper Trade</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              <input type="text" placeholder="Pair (e.g. EURUSD)" className="px-4 py-2 bg-slate-800 border-slate-700 text-slate-100 rounded-xl outline-none focus:border-indigo-500 font-medium text-sm" value={newPaperTrade.pair} onChange={e => setNewPaperTrade({...newPaperTrade, pair: e.target.value})} />
+              <select className="px-4 py-2 bg-slate-800 border-slate-700 text-slate-100 rounded-xl outline-none focus:border-indigo-500 font-medium text-sm cursor-pointer" value={newPaperTrade.result} onChange={e => setNewPaperTrade({...newPaperTrade, result: e.target.value})}>
+                <option value="WIN" className="bg-slate-900">WIN</option>
+                <option value="LOSS" className="bg-slate-900">LOSS</option>
+                <option value="BE" className="bg-slate-900">BREAK EVEN</option>
+              </select>
+              <input type="number" placeholder="PnL ($)" className="px-4 py-2 bg-slate-800 border-slate-700 text-slate-100 rounded-xl outline-none focus:border-indigo-500 font-medium text-sm" value={newPaperTrade.pnl} onChange={e => setNewPaperTrade({...newPaperTrade, pnl: e.target.value})} />
+              <button onClick={handleAddPaperTrade} className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 rounded-xl transition-colors shadow-sm">Add Trade</button>
+            </div>
+            <input type="text" placeholder="Notes (optional)" className="w-full px-4 py-2 bg-slate-800 border-slate-700 text-slate-100 rounded-xl outline-none focus:border-indigo-500 font-medium text-sm" value={newPaperTrade.notes} onChange={e => setNewPaperTrade({...newPaperTrade, notes: e.target.value})} />
+          </div>
+
+          <div className="glass-panel bg-slate-900/40 rounded-2xl border border-white/5 overflow-hidden">
+            <div className="p-6 border-b border-white/5">
+              <h3 className="font-bold text-white uppercase tracking-widest text-xs">Paper Trading History</h3>
+            </div>
+            {paperTrades.length === 0 ? (
+              <div className="p-12 text-center text-slate-500 text-sm font-medium">No paper trades logged yet.</div>
+            ) : (
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-900/50 text-slate-400 text-[10px] uppercase tracking-widest">
+                    <th className="p-4 font-bold">Date</th>
+                    <th className="p-4 font-bold">Pair</th>
+                    <th className="p-4 font-bold">Result</th>
+                    <th className="p-4 font-bold text-right">PnL</th>
+                    <th className="p-4 font-bold w-1/3">Notes</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5 text-sm">
+                  {paperTrades.map(t => (
+                    <tr key={t.id} className="hover:bg-white/[0.02]">
+                      <td className="p-4 text-slate-400">{new Date(t.date).toLocaleDateString()}</td>
+                      <td className="p-4 font-display font-bold text-slate-200">{t.pair}</td>
+                      <td className="p-4">
+                        <span className={`text-[10px] font-bold px-2 py-1 rounded-md border ${t.result === 'WIN' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : t.result === 'LOSS' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-slate-800 text-slate-300 border-slate-700'}`}>{t.result}</span>
+                      </td>
+                      <td className={`p-4 text-right font-display font-bold ${t.pnl > 0 ? 'text-emerald-400' : t.pnl < 0 ? 'text-rose-400' : 'text-slate-400'}`}>
+                        {t.pnl > 0 ? '+' : ''}{t.pnl.toFixed(2)}
+                      </td>
+                      <td className="p-4 text-slate-400 truncate max-w-[200px]" title={t.notes}>{t.notes || '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
