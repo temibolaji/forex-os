@@ -13,6 +13,9 @@ export interface Trade {
   pnlUsd: number | null;
   status: 'OPEN' | 'CLOSED';
   setupTags?: string[];
+  emotion?: string;
+  plannedRR?: number;
+  actualRR?: number;
   screenshotUrl?: string;
   notes?: string;
   openedAt: string;
@@ -24,7 +27,7 @@ interface TradeState {
   addTrade: (userEmail: string, trade: Omit<Trade, 'id' | 'openedAt'>) => void;
   clearTrades: () => void;
   resetUserData: (userEmail: string) => void;
-  closeTrade: (userEmail: string, tradeId: string, pnlUsd: number, pipsResult: number) => void;
+  closeTrade: (userEmail: string, tradeId: string, pnlUsd: number, pipsResult: number, actualRR?: number) => void;
   addTradesBulk: (userEmail: string, trades: Omit<Trade, 'id'>[]) => void;
 }
 
@@ -65,11 +68,11 @@ export const useTradeStore = create<TradeState>((set, get) => ({
     set({ trades: [] });
   },
 
-  closeTrade: (userEmail, tradeId, pnlUsd, pipsResult) => {
+  closeTrade: (userEmail, tradeId, pnlUsd, pipsResult, actualRR) => {
     const key = `forexos_trades_${userEmail.trim().toLowerCase()}`;
     const updated = get().trades.map(trade => 
       trade.id === tradeId 
-        ? { ...trade, status: 'CLOSED' as const, pnlUsd, pipsResult } 
+        ? { ...trade, status: 'CLOSED' as const, pnlUsd, pipsResult, actualRR } 
         : trade
     );
     localStorage.setItem(key, JSON.stringify(updated));

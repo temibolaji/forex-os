@@ -19,6 +19,8 @@ import Charts from './pages/Charts';
 import PropFirmTracker from './pages/PropFirmTracker';
 import Playbook from './pages/Playbook';
 import MacroEdge from './pages/MacroEdge';
+import RiskSimulator from './pages/RiskSimulator';
+import Routine from './pages/Routine';
 import { useAuthStore } from './store/authStore';
 
 const queryClient = new QueryClient();
@@ -96,14 +98,20 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           <NavLink to="/dashboard" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 ${isActive ? 'bg-indigo-500/15 text-indigo-400 shadow-sm border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
             <BarChart3 size={18} /> <span>Dashboard</span>
           </NavLink>
+          <NavLink to="/routine" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 ${isActive ? 'bg-indigo-500/15 text-indigo-400 shadow-sm border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
+            <CheckSquare size={18} /> <span>Daily Routine</span>
+          </NavLink>
           <NavLink to="/prop-firm" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 ${isActive ? 'bg-indigo-500/15 text-indigo-400 shadow-sm border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
             <Trophy size={18} /> <span>Prop Firm</span>
+          </NavLink>
+          <NavLink to="/risk-simulator" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 ${isActive ? 'bg-indigo-500/15 text-indigo-400 shadow-sm border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
+            <TrendingUp size={18} /> <span>Risk Simulator</span>
           </NavLink>
           <NavLink to="/macro" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 ${isActive ? 'bg-indigo-500/15 text-indigo-400 shadow-sm border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
             <Globe2 size={18} /> <span>Macro Edge</span>
           </NavLink>
           <NavLink to="/simulator" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 ${isActive ? 'bg-indigo-500/15 text-indigo-400 shadow-sm border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
-            <TrendingUp size={18} /> <span>Simulator</span>
+            <TrendingUp size={18} /> <span>Paper Trading</span>
           </NavLink>
           <NavLink to="/coach" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 mt-4 border ${isActive ? 'bg-indigo-500/20 border-indigo-500/30 text-indigo-300 shadow-md' : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10'}`}>
             <Bot size={18} /> <span>AI Coach</span>
@@ -216,6 +224,8 @@ function App() {
           <Route path="/playbook" element={<ProtectedRoute><AppLayout><Playbook /></AppLayout></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
           <Route path="/prop-firm" element={<ProtectedRoute><AppLayout><PropFirmTracker /></AppLayout></ProtectedRoute>} />
+          <Route path="/risk-simulator" element={<ProtectedRoute><AppLayout><RiskSimulator /></AppLayout></ProtectedRoute>} />
+          <Route path="/routine" element={<ProtectedRoute><AppLayout><Routine /></AppLayout></ProtectedRoute>} />
           <Route path="/simulator" element={<ProtectedRoute><AppLayout><Simulator /></AppLayout></ProtectedRoute>} />
           <Route path="/macro" element={<ProtectedRoute><AppLayout><MacroEdge /></AppLayout></ProtectedRoute>} />
           <Route path="/coach" element={<ProtectedRoute><AppLayout><Coach /></AppLayout></ProtectedRoute>} />

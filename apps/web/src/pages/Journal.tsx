@@ -32,6 +32,7 @@ export default function Journal() {
     lotSize: '',
     session: 'NEW_YORK',
     setupTags: '',
+    emotion: 'Neutral',
     screenshotUrl: '',
     notes: ''
   });
@@ -79,16 +80,27 @@ export default function Journal() {
 
   const handleSaveTrade = () => {
     if (!currentUser) return;
+
+    const entry = parseFloat(newTrade.entryPrice) || 1.0850;
+    const sl = parseFloat(newTrade.slPrice) || 1.0800;
+    const tp = parseFloat(newTrade.tpPrice) || 1.0950;
+    
+    // Calculate Planned R:R
+    const risk = Math.abs(entry - sl);
+    const reward = Math.abs(tp - entry);
+    const plannedRR = risk > 0 ? (reward / risk) : 0;
     
     addTrade(currentUser.email, {
       pair: newTrade.pair.trim().toUpperCase(),
       direction: newTrade.direction as 'LONG' | 'SHORT',
-      entryPrice: parseFloat(newTrade.entryPrice) || 1.0850,
-      slPrice: parseFloat(newTrade.slPrice) || 1.0800,
-      tpPrice: parseFloat(newTrade.tpPrice) || 1.0950,
+      entryPrice: entry,
+      slPrice: sl,
+      tpPrice: tp,
       lotSize: parseFloat(newTrade.lotSize) || 0.1,
       session: newTrade.session,
       setupTags: newTrade.setupTags.trim() ? newTrade.setupTags.split(',').map(t => t.trim().toUpperCase()) : [],
+      emotion: newTrade.emotion,
+      plannedRR: parseFloat(plannedRR.toFixed(2)),
       screenshotUrl: newTrade.screenshotUrl.trim() || undefined,
       notes: newTrade.notes.trim() || undefined,
       pipsResult: null,
@@ -105,6 +117,7 @@ export default function Journal() {
       lotSize: '',
       session: 'NEW_YORK',
       setupTags: '',
+      emotion: 'Neutral',
       screenshotUrl: '',
       notes: ''
     });
@@ -113,9 +126,27 @@ export default function Journal() {
 
   const handleCloseTrade = () => {
     if (!currentUser || !tradeToClose) return;
+    const trade = trades.find(t => t.id === tradeToClose);
+    if (!trade) return;
+
     const pnl = parseFloat(closeResult.pnlUsd) || 0;
     const pips = parseFloat(closeResult.pipsResult) || 0;
-    closeTrade(currentUser.email, tradeToClose, pnl, pips);
+    
+    // Calculate Actual R:R
+    // Note: This relies on USD risk. But we don't have exact USD risk stored.
+    // Instead we can use pips for RR if we have initial SL pips.
+    // We assume 1 standard lot = $10 per pip roughly, but since we don't know the pair pip value exactly,
+    // we use the pip risk:
+    // To get SL risk in pips, we just need to convert entry/SL difference to pips.
+    // A simple hack: actualRR = pipsResult / initialSlRiskPips
+    // However, entry-sl could be in fractional format (0.0050 = 50 pips).
+    const isJpy = trade.pair.includes('JPY');
+    const multiplier = isJpy ? 100 : 10000;
+    const initialSlRiskPips = Math.abs(trade.entryPrice - trade.slPrice) * multiplier;
+    
+    const actualRR = initialSlRiskPips > 0 ? parseFloat((pips / initialSlRiskPips).toFixed(2)) : 0;
+
+    closeTrade(currentUser.email, tradeToClose, pnl, pips, actualRR);
     setTradeToClose(null);
     setCloseResult({ pnlUsd: '', pipsResult: '' });
   };
@@ -349,9 +380,22 @@ export default function Journal() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Strategy Tags (comma separated)</label>
-                <input type="text" className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium" value={newTrade.setupTags} onChange={e => setNewTrade({...newTrade, setupTags: e.target.value})} placeholder="e.g. SMC, Breakout, Pullback" />
+              <div className="grid grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Strategy Tags (comma separated)</label>
+                  <input type="text" className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium" value={newTrade.setupTags} onChange={e => setNewTrade({...newTrade, setupTags: e.target.value})} placeholder="e.g. SMC, Breakout, Pullback" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Emotion</label>
+                  <select className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium cursor-pointer" value={newTrade.emotion} onChange={e => setNewTrade({...newTrade, emotion: e.target.value})}>
+                    <option value="Neutral" className="bg-slate-900">Neutral / Calm</option>
+                    <option value="Confident" className="bg-slate-900">Confident</option>
+                    <option value="FOMO" className="bg-slate-900">FOMO (Fear of Missing Out)</option>
+                    <option value="Revenge" className="bg-slate-900">Revenge Trading</option>
+                    <option value="Anxious" className="bg-slate-900">Anxious / Stressed</option>
+                    <option value="Tired" className="bg-slate-900">Tired / Unfocused</option>
+                  </select>
+                </div>
               </div>
               
               <div>

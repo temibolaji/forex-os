@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { TrendingUp, TrendingDown, Target, Activity, Award, Calendar, ArrowUpRight, ShieldCheck, Maximize2, X } from 'lucide-react';
+import { TrendingUp, TrendingDown, Target, Activity, Award, Calendar, ArrowUpRight, ShieldCheck, Maximize2, X, BrainCircuit, Crosshair } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTradeStore } from '../store/tradeStore';
 import { useAuthStore } from '../store/authStore';
@@ -186,6 +186,54 @@ export default function Dashboard() {
       .filter(([_, val]) => val !== 0)
       .sort((a, b) => b[1] - a[1]);
   }, [trades]);
+
+  // Emotion Performance Logic
+  const emotionPerformance = useMemo(() => {
+    const performance: Record<string, { pnl: number; winCount: number; lossCount: number; total: number }> = {};
+    
+    filteredTrades.forEach(t => {
+      if (t.status === 'CLOSED' && t.pnlUsd !== null && t.emotion) {
+        if (!performance[t.emotion]) {
+          performance[t.emotion] = { pnl: 0, winCount: 0, lossCount: 0, total: 0 };
+        }
+        performance[t.emotion].total += 1;
+        performance[t.emotion].pnl += t.pnlUsd;
+        if (t.pnlUsd > 0) performance[t.emotion].winCount += 1;
+        else if (t.pnlUsd < 0) performance[t.emotion].lossCount += 1;
+      }
+    });
+    
+    return Object.entries(performance)
+      .map(([emotion, data]) => ({
+        emotion,
+        ...data,
+        winRate: data.total > 0 ? (data.winCount / data.total) * 100 : 0
+      }))
+      .sort((a, b) => b.pnl - a.pnl);
+  }, [filteredTrades]);
+
+  // Execution Efficiency Logic
+  const efficiencyMetrics = useMemo(() => {
+    let totalPlanned = 0;
+    let totalActual = 0;
+    let count = 0;
+
+    filteredTrades.forEach(t => {
+      if (t.status === 'CLOSED' && t.plannedRR !== undefined && t.actualRR !== undefined && t.plannedRR > 0) {
+        totalPlanned += t.plannedRR;
+        totalActual += t.actualRR;
+        count++;
+      }
+    });
+
+    if (count === 0) return { avgPlannedRR: 0, avgActualRR: 0, efficiencyScore: 0 };
+
+    const avgPlannedRR = totalPlanned / count;
+    const avgActualRR = totalActual / count;
+    const efficiencyScore = avgPlannedRR > 0 ? (avgActualRR / avgPlannedRR) * 100 : 0;
+
+    return { avgPlannedRR, avgActualRR, efficiencyScore };
+  }, [filteredTrades]);
 
   const equityData = useMemo(() => {
     const closedTrades = [...filteredTrades]
@@ -578,6 +626,83 @@ export default function Dashboard() {
                   ))}
                 </div>
               </>
+            )}
+          </div>
+        </div>
+
+        {/* Emotions Impact */}
+        <div className="glass-panel bg-slate-900/40 p-6 md:p-8 rounded-[2rem] border border-white/5 shadow-sm space-y-6">
+          <div className="flex justify-between items-center border-b border-white/5 pb-4">
+            <h2 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
+              <BrainCircuit size={16} className="text-pink-400" /> Psychology & Emotions
+            </h2>
+          </div>
+          <div className="overflow-x-auto custom-scrollbar">
+            {emotionPerformance.length === 0 ? (
+              <div className="py-8 text-center text-slate-500 font-medium text-sm border border-dashed border-white/10 rounded-2xl">No emotion data logged yet.</div>
+            ) : (
+              <table className="w-full text-left border-collapse min-w-[300px]">
+                <thead>
+                  <tr className="border-b border-white/5 text-slate-500 text-[10px] font-bold uppercase tracking-widest">
+                    <th className="pb-3 pr-4">Emotion</th>
+                    <th className="pb-3 px-4">Trades</th>
+                    <th className="pb-3 px-4">Win Rate</th>
+                    <th className="pb-3 text-right pl-4">Net PnL</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {emotionPerformance.map((emo, i) => (
+                    <tr key={i} className="hover:bg-white/[0.02] transition-colors">
+                      <td className="py-3 pr-4 font-display font-bold text-white text-xs">
+                        <span className="bg-pink-500/10 text-pink-400 border border-pink-500/20 px-2 py-1 rounded-md">{emo.emotion}</span>
+                      </td>
+                      <td className="py-3 px-4 text-slate-300 font-medium">{emo.total}</td>
+                      <td className="py-3 px-4 text-slate-300 font-medium">
+                        <span className={emo.winRate >= 50 ? 'text-emerald-400' : 'text-rose-400'}>{emo.winRate.toFixed(1)}%</span>
+                      </td>
+                      <td className={`py-3 pl-4 text-right font-display font-bold ${emo.pnl > 0 ? 'text-emerald-400' : emo.pnl < 0 ? 'text-rose-400' : 'text-slate-500'}`}>
+                        {emo.pnl > 0 ? `+$${emo.pnl.toFixed(2)}` : `-$${Math.abs(emo.pnl).toFixed(2)}`}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+
+        {/* Execution Efficiency */}
+        <div className="glass-panel bg-slate-900/40 p-6 md:p-8 rounded-[2rem] border border-white/5 shadow-sm space-y-6">
+          <div className="flex justify-between items-center border-b border-white/5 pb-4">
+            <h2 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
+              <Crosshair size={16} className="text-amber-400" /> Execution Efficiency
+            </h2>
+          </div>
+          <div className="space-y-4">
+            {efficiencyMetrics.avgPlannedRR === 0 ? (
+               <div className="py-8 text-center text-slate-500 font-medium text-sm border border-dashed border-white/10 rounded-2xl">No valid R:R data logged.</div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-slate-800/50 p-4 rounded-xl border border-white/5">
+                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Planned R:R</div>
+                  <div className="text-xl font-display font-bold text-white">1 : {efficiencyMetrics.avgPlannedRR.toFixed(2)}</div>
+                </div>
+                <div className="bg-slate-800/50 p-4 rounded-xl border border-white/5">
+                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Actual R:R</div>
+                  <div className={`text-xl font-display font-bold ${efficiencyMetrics.avgActualRR >= efficiencyMetrics.avgPlannedRR ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    1 : {efficiencyMetrics.avgActualRR.toFixed(2)}
+                  </div>
+                </div>
+                <div className="col-span-2 bg-indigo-500/10 p-4 rounded-xl border border-indigo-500/20 flex flex-col items-center justify-center">
+                  <div className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-1">Efficiency Score</div>
+                  <div className={`text-3xl font-display font-black ${efficiencyMetrics.efficiencyScore >= 80 ? 'text-emerald-400' : efficiencyMetrics.efficiencyScore >= 50 ? 'text-amber-400' : 'text-rose-400'}`}>
+                    {efficiencyMetrics.efficiencyScore.toFixed(1)}%
+                  </div>
+                  <div className="text-xs text-indigo-300/80 mt-1 text-center max-w-[200px]">
+                    {efficiencyMetrics.efficiencyScore >= 80 ? "Great job letting winners run!" : "You're cutting winners too early."}
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </div>
