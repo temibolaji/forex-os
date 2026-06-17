@@ -18,6 +18,7 @@ import Settings from './pages/Settings';
 import Charts from './pages/Charts';
 import PropFirmTracker from './pages/PropFirmTracker';
 import Playbook from './pages/Playbook';
+import MacroEdge from './pages/MacroEdge';
 import { useAuthStore } from './store/authStore';
 
 const queryClient = new QueryClient();
@@ -97,6 +98,9 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           </NavLink>
           <NavLink to="/prop-firm" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 ${isActive ? 'bg-indigo-500/15 text-indigo-400 shadow-sm border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
             <Trophy size={18} /> <span>Prop Firm</span>
+          </NavLink>
+          <NavLink to="/macro" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 ${isActive ? 'bg-indigo-500/15 text-indigo-400 shadow-sm border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
+            <Globe2 size={18} /> <span>Macro Edge</span>
           </NavLink>
           <NavLink to="/simulator" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 ${isActive ? 'bg-indigo-500/15 text-indigo-400 shadow-sm border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
             <TrendingUp size={18} /> <span>Simulator</span>
@@ -213,6 +217,7 @@ function App() {
           <Route path="/dashboard" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
           <Route path="/prop-firm" element={<ProtectedRoute><AppLayout><PropFirmTracker /></AppLayout></ProtectedRoute>} />
           <Route path="/simulator" element={<ProtectedRoute><AppLayout><Simulator /></AppLayout></ProtectedRoute>} />
+          <Route path="/macro" element={<ProtectedRoute><AppLayout><MacroEdge /></AppLayout></ProtectedRoute>} />
           <Route path="/coach" element={<ProtectedRoute><AppLayout><Coach /></AppLayout></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><AppLayout><Settings /></AppLayout></ProtectedRoute>} />
 
