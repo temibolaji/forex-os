@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Calendar, ShieldCheck, Maximize2, X } from 'lucide-react';
+import { ShieldCheck, Maximize2, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTradeStore } from '../store/tradeStore';
 import { useAuthStore } from '../store/authStore';
@@ -290,355 +290,441 @@ export default function Dashboard() {
     return { points, pathData, minBalance, maxBalance, hasData: true, maxDrawdownPct };
   }, [filteredTrades]);
 
-  // ── helper: stat card ──────────────────────────────────────
-  const StatCard = ({ label, value, color = 'var(--text-primary)' }: { label: string; value: string; color?: string }) => (
-    <div className="card" style={{ padding: '16px 18px' }}>
-      <div className="section-title" style={{ marginBottom: 6 }}>{label}</div>
-      <div className="metric" style={{ color }}>{value}</div>
-    </div>
-  );
 
-  // ── helper: card header ─────────────────────────────────────
-  const CardHeader = ({ title }: { title: string }) => (
-    <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '-0.01em', marginBottom: 14, paddingBottom: 12, borderBottom: '1px solid var(--border-subtle)' }}>{title}</div>
-  );
+  const isProfit = metrics.totalPnl >= 0;
+  const pnlColor = isProfit ? 'var(--bull)' : 'var(--bear)';
 
-  const emptyState = (msg: string) => (
-    <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 13, border: '1px dashed var(--border-subtle)', borderRadius: 10 }}>{msg}</div>
+  const sessions: { key: keyof typeof sessionPerformance; label: string; color: string }[] = [
+    { key: 'LONDON',   label: 'London',   color: '#7c3aed' },
+    { key: 'NEW_YORK', label: 'New York', color: '#00d37f' },
+    { key: 'TOKYO',    label: 'Tokyo',    color: '#f5a623' },
+    { key: 'SYDNEY',   label: 'Sydney',   color: '#38bdf8' },
+  ];
+
+  const empty = (msg: string) => (
+    <div className="empty-state">{msg}</div>
   );
 
   return (
-    <div style={{ padding: '24px 28px', maxWidth: 1100, margin: '0 auto', fontFamily: 'var(--font-sans)' }} className="animate-in">
+    <div className="page" style={{ paddingBottom: 48 }}>
 
-      {/* ── Header ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 22, flexWrap: 'wrap', gap: 12 }}>
+      {/* ══ Header ══ */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.03em' }}>Dashboard</h1>
-          <p style={{ fontSize: 12.5, color: 'var(--text-tertiary)', marginTop: 3 }}>Performance overview & analytics</p>
+          <h1 className="page-title">Dashboard</h1>
+          <p className="page-subtitle">Performance overview & structural analytics</p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {dailyLossLimit !== null && metrics.todayPnl <= -dailyLossLimit && (
-            <div style={{ background: 'var(--red-bg)', border: '1px solid var(--red-border)', borderRadius: 8, padding: '7px 12px', display: 'flex', alignItems: 'center', gap: 7, fontSize: 12 }}>
-              <ShieldCheck size={14} style={{ color: 'var(--red)', flexShrink: 0 }} />
-              <span style={{ color: 'var(--red)', fontWeight: 600 }}>Daily loss limit reached — step away.</span>
+            <div className="alert-danger">
+              <ShieldCheck size={13} style={{ flexShrink: 0 }} />
+              Daily loss limit reached — stop trading.
             </div>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--surface-2)', border: '1px solid var(--border-default)', borderRadius: 8, padding: '6px 10px' }}>
-            <Calendar size={13} style={{ color: 'var(--text-tertiary)' }} />
-            <select value={dateFilter} onChange={e => setDateFilter(e.target.value)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: 12.5, fontWeight: 600, outline: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)' }}>
-              <option value="7d" style={{ background: 'var(--surface-2)' }}>Last 7 Days</option>
-              <option value="30d" style={{ background: 'var(--surface-2)' }}>Last 30 Days</option>
-              <option value="this_year" style={{ background: 'var(--surface-2)' }}>This Year</option>
-              <option value="all_time" style={{ background: 'var(--surface-2)' }}>All Time</option>
-              <option value="custom" style={{ background: 'var(--surface-2)' }}>Custom</option>
-            </select>
-          </div>
+          <select
+            value={dateFilter}
+            onChange={e => setDateFilter(e.target.value)}
+            style={{ width: 'auto', background: 'var(--bg-2)', border: '1px solid var(--line)', borderRadius: 8, padding: '7px 12px', fontSize: 13, color: 'var(--t1)', fontWeight: 500, outline: 'none', cursor: 'pointer' }}
+          >
+            <option value="7d">Last 7 days</option>
+            <option value="30d">Last 30 days</option>
+            <option value="this_year">This year</option>
+            <option value="all_time">All time</option>
+            <option value="custom">Custom</option>
+          </select>
 
           {dateFilter === 'custom' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--surface-2)', border: '1px solid var(--border-default)', borderRadius: 8, padding: '6px 10px' }}>
-              <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)} className="input" style={{ padding: '0', background: 'transparent', border: 'none', fontSize: 12, width: 120 }} />
-              <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>→</span>
-              <input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)} className="input" style={{ padding: '0', background: 'transparent', border: 'none', fontSize: 12, width: 120 }} />
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center', background: 'var(--bg-2)', border: '1px solid var(--line)', borderRadius: 8, padding: '5px 10px' }}>
+              <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)}
+                style={{ background: 'transparent', border: 'none', color: 'var(--t1)', fontSize: 12, outline: 'none', width: 120 }} />
+              <span style={{ color: 'var(--t3)', fontSize: 11 }}>→</span>
+              <input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)}
+                style={{ background: 'transparent', border: 'none', color: 'var(--t1)', fontSize: 12, outline: 'none', width: 120 }} />
             </div>
           )}
         </div>
       </div>
 
-      {/* ── Stat Cards ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10, marginBottom: 20 }}>
-        <StatCard label="Total Trades" value={String(metrics.totalTrades)} />
-        <StatCard label="Win Rate" value={`${metrics.winRate}%`} color="var(--green)" />
-        <StatCard label="Profit Factor" value={metrics.profitFactor} />
-        <StatCard label="Expectancy" value={`$${metrics.expectancyUsd.toFixed(2)}`} />
-        <StatCard label="Max Drawdown" value={`${(equityData.maxDrawdownPct || 0).toFixed(1)}%`} color="var(--red)" />
-        <div style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 14, padding: '16px 18px' }}>
-          <div className="section-title" style={{ marginBottom: 6, color: 'rgba(165,180,252,0.7)' }}>Net Profit</div>
-          <div className="metric" style={{ color: metrics.totalPnl >= 0 ? '#a5b4fc' : 'var(--red)' }}>
-            {metrics.totalPnl >= 0 ? '+' : ''}${metrics.totalPnl.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+      {/* ══ Top KPIs ══ */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12, marginBottom: 24 }}>
+
+        {/* Net P&L — hero */}
+        <div className="stat-card-hero" style={{ gridColumn: 'span 2' }}>
+          <div className="stat-label" style={{ color: 'rgba(196,181,253,0.6)' }}>Net Profit / Loss</div>
+          <div className="stat-value" style={{ fontSize: 38, color: pnlColor }}>
+            {isProfit ? '+' : ''}${metrics.totalPnl.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
+          <div style={{ marginTop: 8, fontSize: 12, color: 'rgba(196,181,253,0.5)' }}>
+            {isProfit ? '↑' : '↓'} vs starting balance of ${initialBalance.toLocaleString()}
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-label">Win Rate</div>
+          <div className="stat-value bull">{metrics.winRate}%</div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-label">Profit Factor</div>
+          <div className="stat-value">{metrics.profitFactor}</div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-label">Expectancy</div>
+          <div className="stat-value" style={{ color: metrics.expectancyUsd >= 0 ? 'var(--bull)' : 'var(--bear)' }}>
+            {metrics.expectancyUsd >= 0 ? '+' : ''}${metrics.expectancyUsd.toFixed(2)}
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-label">Max Drawdown</div>
+          <div className="stat-value bear">{(equityData.maxDrawdownPct || 0).toFixed(1)}%</div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-label">Total Trades</div>
+          <div className="stat-value">{metrics.totalTrades}</div>
         </div>
       </div>
 
-      {/* ── Main Grid ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+      {/* ══ Mid Grid ══ */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16, marginBottom: 16 }}>
 
-        {/* Equity Curve — spans 2 cols */}
-        <div className="card-lg" style={{ gridColumn: 'span 2', padding: '18px 20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, paddingBottom: 12, borderBottom: '1px solid var(--border-subtle)' }}>
-            <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '-0.01em' }}>Equity Curve</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 600, color: '#a5b4fc', background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.18)', padding: '3px 9px', borderRadius: 999 }}>
-                <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#a5b4fc', display: 'inline-block' }} />
+        {/* Equity Curve */}
+        <div className="card" style={{ padding: '20px 22px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <div>
+              <div className="card-title">Equity Curve</div>
+            </div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 600, color: '#c4b5fd', background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.2)', padding: '3px 10px', borderRadius: 99, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#c4b5fd', display: 'inline-block', boxShadow: '0 0 6px #c4b5fd' }} />
                 Live
               </span>
-              <button onClick={() => setIsChartExpanded(true)} style={{ background: 'var(--surface-2)', border: '1px solid var(--border-default)', borderRadius: 7, padding: '4px 6px', color: 'var(--text-tertiary)', cursor: 'pointer', display: 'flex' }}>
+              <button onClick={() => setIsChartExpanded(true)} className="btn btn-ghost" style={{ padding: '4px 7px', fontSize: 11 }}>
                 <Maximize2 size={12} />
               </button>
             </div>
           </div>
-          <div style={{ height: 220, position: 'relative', overflow: 'visible' }} onMouseLeave={() => setHoveredPoint(null)}>
+
+          <div style={{ height: 200, position: 'relative', overflow: 'visible' }} onMouseLeave={() => setHoveredPoint(null)}>
             {/* Grid lines */}
-            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', pointerEvents: 'none', opacity: 0.05 }}>
-              {[0,1,2,3].map(i => <div key={i} style={{ borderBottom: '1px solid #fff', width: '100%' }} />)}
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', pointerEvents: 'none' }}>
+              {[0,1,2,3].map(i => <div key={i} style={{ borderBottom: '1px solid var(--line)', width: '100%' }} />)}
             </div>
-            <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ width: '100%', height: '100%', color: '#6366f1', overflow: 'visible' }}>
+
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
               <defs>
-                <linearGradient id="eqGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#6366f1" stopOpacity="0.25" />
-                  <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
+                <linearGradient id="eqG" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%"   stopColor={isProfit ? '#00d37f' : '#ff3b3b'} stopOpacity="0.18" />
+                  <stop offset="100%" stopColor={isProfit ? '#00d37f' : '#ff3b3b'} stopOpacity="0" />
                 </linearGradient>
               </defs>
-              <path d={`${equityData.pathData} L100,100 L0,100 Z`} fill="url(#eqGrad)" />
-              <path d={equityData.pathData} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+              <path d={`${equityData.pathData} L100,100 L0,100 Z`} fill="url(#eqG)" />
+              <path d={equityData.pathData} fill="none" stroke={isProfit ? '#00d37f' : '#ff3b3b'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
               {equityData.points.map((p, i) => (
                 <g key={i} onMouseEnter={() => setHoveredPoint(i)}>
-                  <circle cx={p.x} cy={p.y} r="5" fill="transparent" style={{ cursor: 'pointer' }} vectorEffect="non-scaling-stroke" />
-                  <circle cx={p.x} cy={p.y} r={hoveredPoint === i ? "4" : "0"} fill="#0a0a0f" stroke="#6366f1" strokeWidth="2" vectorEffect="non-scaling-stroke" style={{ transition: 'r 0.15s' }} />
+                  <circle cx={p.x} cy={p.y} r="5" fill="transparent" style={{ cursor: 'crosshair' }} vectorEffect="non-scaling-stroke" />
+                  {hoveredPoint === i && <circle cx={p.x} cy={p.y} r="3.5" fill="#000" stroke={isProfit ? '#00d37f' : '#ff3b3b'} strokeWidth="1.5" vectorEffect="non-scaling-stroke" />}
                 </g>
               ))}
               {equityData.hasData && (
-                <circle cx="100" cy={equityData.points[equityData.points.length - 1].y} r="2.5" fill="#6366f1" stroke="#0a0a0f" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                <circle cx="100" cy={equityData.points[equityData.points.length - 1].y} r="2.5" fill={isProfit ? '#00d37f' : '#ff3b3b'} stroke="#000" strokeWidth="1" vectorEffect="non-scaling-stroke" />
               )}
             </svg>
+
+            {/* Tooltip */}
             {hoveredPoint !== null && (
-              <div style={{ position: 'absolute', zIndex: 20, background: 'var(--surface-1)', border: '1px solid var(--border-default)', borderRadius: 9, padding: '8px 12px', pointerEvents: 'none', transform: 'translateX(-50%) translateY(-110%)', left: `calc(${equityData.points[hoveredPoint].x}% * 0.87 + 1%)`, top: `calc(${equityData.points[hoveredPoint].y}% * 0.8 + 5%)`, boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
-                <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginBottom: 2 }}>{equityData.points[hoveredPoint].date}</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>${equityData.points[hoveredPoint].balance.toFixed(2)}</div>
+              <div style={{ position: 'absolute', zIndex: 20, background: 'var(--bg-2)', border: '1px solid var(--line)', borderRadius: 8, padding: '7px 11px', pointerEvents: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.5)', top: 0, left: '50%', transform: 'translateX(-50%)' }}>
+                <div style={{ fontSize: 10, color: 'var(--t3)', marginBottom: 2 }}>{equityData.points[hoveredPoint].date}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)', letterSpacing: '-0.03em' }}>${equityData.points[hoveredPoint].balance.toFixed(2)}</div>
                 {equityData.points[hoveredPoint].pnl !== 0 && (
-                  <div style={{ fontSize: 11, fontWeight: 600, color: equityData.points[hoveredPoint].pnl >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: equityData.points[hoveredPoint].pnl >= 0 ? 'var(--bull)' : 'var(--bear)', marginTop: 1 }}>
                     {equityData.points[hoveredPoint].pnl > 0 ? '+' : ''}{equityData.points[hoveredPoint].pnl.toFixed(2)}
                   </div>
                 )}
               </div>
             )}
           </div>
+
+          {/* Balance summary */}
+          <div style={{ display: 'flex', gap: 12, marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--line)' }}>
+            {[
+              { label: 'Start', value: `$${initialBalance.toLocaleString()}` },
+              { label: 'Current', value: `$${(initialBalance + metrics.totalPnl).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` },
+              { label: 'Return', value: `${metrics.totalPnl >= 0 ? '+' : ''}${(metrics.totalPnl / initialBalance * 100).toFixed(2)}%` },
+            ].map(s => (
+              <div key={s.label}>
+                <div style={{ fontSize: 10, color: 'var(--t3)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 2 }}>{s.label}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--t1)', letterSpacing: '-0.03em' }}>{s.value}</div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Session Performance */}
-        <div className="card-lg" style={{ padding: '18px 20px' }}>
-          <CardHeader title="Session Performance" />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {(['LONDON','NEW_YORK','TOKYO','SYDNEY'] as const).map(sess => {
-              const labels: Record<string, string> = { LONDON: 'London', NEW_YORK: 'New York', TOKYO: 'Tokyo', SYDNEY: 'Sydney' };
-              const v = sessionPerformance[sess];
+        <div className="card" style={{ padding: '20px 22px' }}>
+          <div className="card-title" style={{ marginBottom: 18 }}>Session Performance</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {sessions.map(s => {
+              const v = sessionPerformance[s.key];
+              const pct = Math.max(6, (Math.abs(v) / maxSessionPerf) * 100);
               return (
-                <div key={sess}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                    <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text-secondary)' }}>{labels[sess]}</span>
-                    <span style={{ fontSize: 11.5, fontWeight: 700, color: v >= 0 ? 'var(--green)' : 'var(--red)' }}>{v >= 0 ? '+' : ''}${Math.abs(v).toFixed(2)}</span>
+                <div key={s.key}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 7, alignItems: 'baseline' }}>
+                    <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--t2)' }}>{s.label}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: v >= 0 ? 'var(--bull)' : 'var(--bear)', letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>
+                      {v >= 0 ? '+' : ''}${Math.abs(v).toFixed(2)}
+                    </span>
                   </div>
-                  <div style={{ height: 3, background: 'var(--surface-3)', borderRadius: 2, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', background: v >= 0 ? 'var(--green)' : 'var(--red)', borderRadius: 2, width: Math.max(4, (Math.abs(v) / maxSessionPerf) * 100) + '%', transition: 'width 0.4s ease' }} />
+                  <div className="progress-track">
+                    <div className="progress-fill" style={{ width: `${pct}%`, background: v >= 0 ? s.color : 'var(--bear)' }} />
                   </div>
                 </div>
               );
             })}
           </div>
         </div>
+      </div>
 
-        {/* Strategy Performance — spans 2 cols */}
-        <div className="card-lg" style={{ gridColumn: 'span 2', padding: '18px 20px' }}>
-          <CardHeader title="Strategy Performance" />
-          {strategyPerformance.length === 0 ? emptyState('No strategy tags found in closed trades.') : (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 380 }}>
-                <thead><tr className="table-header"><th style={{ textAlign: 'left' }}>Strategy</th><th style={{ textAlign: 'left' }}>Trades</th><th style={{ textAlign: 'left' }}>Win Rate</th><th style={{ textAlign: 'right' }}>Net PnL</th></tr></thead>
-                <tbody>
-                  {strategyPerformance.map((s, i) => (
-                    <tr key={i} className="table-row">
-                      <td><span className="badge badge-indigo">{s.tag}</span></td>
-                      <td>{s.total}</td>
-                      <td style={{ color: s.winRate >= 50 ? 'var(--green)' : 'var(--red)', fontWeight: 600 }}>{s.winRate.toFixed(1)}%</td>
-                      <td style={{ textAlign: 'right', fontWeight: 700, color: s.pnl > 0 ? 'var(--green)' : s.pnl < 0 ? 'var(--red)' : 'var(--text-tertiary)' }}>
-                        {s.pnl > 0 ? '+' : ''}${s.pnl.toFixed(2)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+      {/* ══ Bottom Grid ══ */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 16 }}>
 
-        {/* Live Exposure */}
-        <div className="card-lg" style={{ padding: '18px 20px' }}>
-          <CardHeader title="Live Exposure" />
-          {currencyExposure.length === 0 ? emptyState('No open trades.') : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {currencyExposure.some(c => Math.abs(c[1]) > 1) && (
-                <div style={{ background: 'var(--red-bg)', border: '1px solid var(--red-border)', borderRadius: 8, padding: '8px 10px', marginBottom: 4 }}>
-                  <p style={{ fontSize: 11, color: 'var(--red)', fontWeight: 600, margin: 0 }}>⚠ Heavy exposure — correlated positions.</p>
-                </div>
-              )}
-              {currencyExposure.map(([cur, exp]) => (
-                <div key={cur} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)' }}>{cur}</span>
-                  <span className={exp > 0 ? 'badge badge-green' : 'badge badge-red'}>{exp > 0 ? `LONG +${exp}` : `SHORT ${exp}`}</span>
+        {/* Psychology */}
+        <div className="card" style={{ padding: '20px 22px' }}>
+          <div className="card-title" style={{ marginBottom: 16 }}>Psychology & Emotions</div>
+          {emotionPerformance.length === 0 ? empty('No emotion data logged yet') : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {emotionPerformance.map((e, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '9px 0', borderBottom: i < emotionPerformance.length - 1 ? '1px solid var(--line)' : 'none' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 99, background: 'rgba(245,166,35,0.1)', color: 'var(--gold)', border: '1px solid rgba(245,166,35,0.2)' }}>{e.emotion}</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                    <span style={{ fontSize: 11.5, color: 'var(--t3)', fontVariantNumeric: 'tabular-nums' }}>{e.winRate.toFixed(0)}%</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: e.pnl >= 0 ? 'var(--bull)' : 'var(--bear)', letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>
+                      {e.pnl > 0 ? '+' : ''}${e.pnl.toFixed(2)}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        {/* Psychology */}
-        <div className="card-lg" style={{ padding: '18px 20px' }}>
-          <CardHeader title="Psychology & Emotions" />
-          {emotionPerformance.length === 0 ? emptyState('No emotion data logged yet.') : (
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead><tr className="table-header"><th style={{ textAlign: 'left' }}>Emotion</th><th style={{ textAlign: 'left' }}>WR</th><th style={{ textAlign: 'right' }}>PnL</th></tr></thead>
-              <tbody>
-                {emotionPerformance.map((e, i) => (
-                  <tr key={i} className="table-row">
-                    <td style={{ fontSize: 11 }}><span style={{ background: 'rgba(244,63,94,0.08)', color: '#fb7185', border: '1px solid rgba(244,63,94,0.18)', borderRadius: 5, padding: '2px 7px', fontSize: 11, fontWeight: 600 }}>{e.emotion}</span></td>
-                    <td style={{ fontWeight: 600, color: e.winRate >= 50 ? 'var(--green)' : 'var(--red)' }}>{e.winRate.toFixed(0)}%</td>
-                    <td style={{ textAlign: 'right', fontWeight: 700, color: e.pnl > 0 ? 'var(--green)' : 'var(--red)' }}>{e.pnl > 0 ? '+' : ''}${e.pnl.toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-
         {/* Execution Efficiency */}
-        <div className="card-lg" style={{ padding: '18px 20px' }}>
-          <CardHeader title="Execution Efficiency" />
-          {efficiencyMetrics.avgPlannedRR === 0 ? emptyState('No R:R data logged yet.') : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                <div style={{ background: 'var(--surface-2)', borderRadius: 9, padding: '10px 12px' }}>
-                  <div className="section-title" style={{ marginBottom: 4 }}>Planned R:R</div>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>1 : {efficiencyMetrics.avgPlannedRR.toFixed(2)}</div>
+        <div className="card" style={{ padding: '20px 22px' }}>
+          <div className="card-title" style={{ marginBottom: 16 }}>Execution Efficiency</div>
+          {efficiencyMetrics.avgPlannedRR === 0 ? empty('No R:R data logged yet') : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {[
+                { label: 'Planned R:R', value: `1 : ${efficiencyMetrics.avgPlannedRR.toFixed(2)}`, color: 'var(--t1)' },
+                { label: 'Actual R:R', value: `1 : ${efficiencyMetrics.avgActualRR.toFixed(2)}`, color: efficiencyMetrics.avgActualRR >= efficiencyMetrics.avgPlannedRR ? 'var(--bull)' : 'var(--bear)' },
+              ].map(s => (
+                <div key={s.label} style={{ background: 'var(--bg-2)', borderRadius: 10, padding: '12px 14px' }}>
+                  <div style={{ fontSize: 10.5, color: 'var(--t3)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6 }}>{s.label}</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: s.color, letterSpacing: '-0.04em' }}>{s.value}</div>
                 </div>
-                <div style={{ background: 'var(--surface-2)', borderRadius: 9, padding: '10px 12px' }}>
-                  <div className="section-title" style={{ marginBottom: 4 }}>Actual R:R</div>
-                  <div style={{ fontSize: 16, fontWeight: 800, letterSpacing: '-0.03em', color: efficiencyMetrics.avgActualRR >= efficiencyMetrics.avgPlannedRR ? 'var(--green)' : 'var(--red)' }}>1 : {efficiencyMetrics.avgActualRR.toFixed(2)}</div>
+              ))}
+              <div style={{ background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)', borderRadius: 10, padding: '14px', textAlign: 'center' }}>
+                <div style={{ fontSize: 10, color: '#c4b5fd', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Score</div>
+                <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-0.06em', color: efficiencyMetrics.efficiencyScore >= 80 ? 'var(--bull)' : efficiencyMetrics.efficiencyScore >= 50 ? 'var(--gold)' : 'var(--bear)' }}>
+                  {efficiencyMetrics.efficiencyScore.toFixed(0)}%
                 </div>
-              </div>
-              <div style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 9, padding: '12px', textAlign: 'center' }}>
-                <div className="section-title" style={{ marginBottom: 4, color: '#a5b4fc' }}>Efficiency Score</div>
-                <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.04em', color: efficiencyMetrics.efficiencyScore >= 80 ? 'var(--green)' : efficiencyMetrics.efficiencyScore >= 50 ? 'var(--amber)' : 'var(--red)' }}>
-                  {efficiencyMetrics.efficiencyScore.toFixed(1)}%
-                </div>
-                <div style={{ fontSize: 11, color: 'rgba(165,180,252,0.6)', marginTop: 3 }}>
-                  {efficiencyMetrics.efficiencyScore >= 80 ? 'Great — letting winners run.' : 'Cutting winners early.'}
+                <div style={{ fontSize: 11, color: 'rgba(196,181,253,0.5)', marginTop: 4 }}>
+                  {efficiencyMetrics.efficiencyScore >= 80 ? 'Disciplined execution' : 'Cutting winners short'}
                 </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* Performance Heatmap — full width */}
-        <div className="card-lg" style={{ gridColumn: 'span 3', padding: '18px 20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, paddingBottom: 12, borderBottom: '1px solid var(--border-subtle)' }}>
-            <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-secondary)' }}>Performance Heatmap</div>
-            <span className="section-title">Day vs Session</span>
+        {/* Live Exposure */}
+        <div className="card" style={{ padding: '20px 22px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <div className="card-title">Live Exposure</div>
+            {currencyExposure.length > 0 && (
+              <span className="pill pill-bull" style={{ fontSize: 10 }}>{currencyExposure.length} active</span>
+            )}
           </div>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 500 }}>
-              <thead>
-                <tr>
-                  <th className="table-header" style={{ textAlign: 'left', paddingBottom: 10, paddingRight: 16, fontSize: 10.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-tertiary)' }}>Day</th>
-                  {['London','New York','Tokyo','Sydney'].map(s => <th key={s} className="table-header" style={{ textAlign: 'center', paddingBottom: 10, paddingInline: 6, fontSize: 10.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-tertiary)' }}>{s}</th>)}
-                </tr>
-              </thead>
-              <tbody>
-                {[1,2,3,4,5].map(day => {
-                  const dayNames = ['','Mon','Tue','Wed','Thu','Fri'];
-                  return (
-                    <tr key={day}>
-                      <td style={{ paddingRight: 16, paddingBlock: 5, fontSize: 11.5, fontWeight: 600, color: 'var(--text-tertiary)' }}>{dayNames[day]}</td>
-                      {['LONDON','NEW_YORK','TOKYO','SYDNEY'].map(sess => {
-                        const cell = heatmapPerformance[day][sess];
-                        const has = cell.total > 0;
-                        const wr = has ? (cell.wins / cell.total) * 100 : 0;
-                        const bg = !has ? 'var(--surface-2)' : cell.pnl > 0 ? 'rgba(16,185,129,0.08)' : 'rgba(244,63,94,0.08)';
-                        const border = !has ? 'var(--border-subtle)' : cell.pnl > 0 ? 'var(--green-border)' : 'var(--red-border)';
-                        const col = !has ? 'var(--text-muted)' : cell.pnl > 0 ? 'var(--green)' : 'var(--red)';
-                        return (
-                          <td key={sess} style={{ padding: '4px 6px' }}>
-                            <div style={{ height: 56, borderRadius: 8, background: bg, border: `1px solid ${border}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                              {has ? (
-                                <>
-                                  <span style={{ fontSize: 12, fontWeight: 700, color: col }}>{cell.pnl > 0 ? '+' : ''}${cell.pnl.toFixed(0)}</span>
-                                  <span style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--text-tertiary)', marginTop: 2 }}>{wr.toFixed(0)}% WR ({cell.total})</span>
-                                </>
-                              ) : <span style={{ color: 'var(--border-default)', fontSize: 11 }}>—</span>}
-                            </div>
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Recent Trades — full width */}
-        <div className="card-lg" style={{ gridColumn: 'span 3', padding: '18px 20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, paddingBottom: 12, borderBottom: '1px solid var(--border-subtle)' }}>
-            <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-secondary)' }}>Recent Trades</div>
-            <Link to="/journal" style={{ fontSize: 11.5, fontWeight: 600, color: '#a5b4fc', textDecoration: 'none', background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', padding: '4px 12px', borderRadius: 6 }}>View all →</Link>
-          </div>
-          {filteredTrades.length === 0 ? emptyState('No trades yet. Log your first trade in the Journal.') : (
-            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 500 }}>
-              <thead><tr>
-                <th className="table-header" style={{ textAlign: 'left' }}>Pair</th>
-                <th className="table-header" style={{ textAlign: 'left' }}>Direction</th>
-                <th className="table-header" style={{ textAlign: 'left' }}>Result</th>
-                <th className="table-header" style={{ textAlign: 'right' }}>Date</th>
-              </tr></thead>
-              <tbody>
-                {filteredTrades.slice(0, 5).map(t => (
-                  <tr key={t.id} className="table-row">
-                    <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{t.pair}</td>
-                    <td><span className={t.direction === 'LONG' ? 'badge badge-green' : 'badge badge-red'}>{t.direction}</span></td>
-                    <td style={{ fontWeight: 700, color: t.pnlUsd != null && t.pnlUsd > 0 ? 'var(--green)' : t.pnlUsd != null && t.pnlUsd < 0 ? 'var(--red)' : 'var(--text-tertiary)' }}>
-                      {t.pnlUsd != null ? `${t.pnlUsd > 0 ? '+' : ''}$${Math.abs(t.pnlUsd).toFixed(2)}` : 'OPEN'}
-                    </td>
-                    <td style={{ textAlign: 'right', color: 'var(--text-tertiary)', fontSize: 12 }}>{new Date(t.openedAt).toLocaleDateString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {currencyExposure.length === 0 ? empty('No open positions') : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {currencyExposure.some(c => Math.abs(c[1]) > 1) && (
+                <div style={{ background: 'var(--bear-dim)', border: '1px solid var(--bear-line)', borderRadius: 8, padding: '8px 10px', fontSize: 11.5, color: 'var(--bear)', fontWeight: 500, marginBottom: 4 }}>
+                  ⚠ High correlation — reduce size
+                </div>
+              )}
+              {currencyExposure.map(([cur, exp]) => (
+                <div key={cur} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', background: 'var(--bg-2)', borderRadius: 8 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)', letterSpacing: '-0.02em' }}>{cur}</span>
+                  <span className={exp > 0 ? 'pill pill-bull' : 'pill pill-bear'}>
+                    {exp > 0 ? `↑ LONG` : `↓ SHORT`} {Math.abs(exp)}
+                  </span>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>
 
-      {/* Expanded Chart Modal */}
+      {/* ══ Strategy Performance ══ */}
+      <div className="card" style={{ padding: '20px 22px', marginBottom: 16 }}>
+        <div className="card-title" style={{ marginBottom: 16 }}>Strategy Performance</div>
+        {strategyPerformance.length === 0 ? empty('No strategy tags found in closed trades') : (
+          <div style={{ overflowX: 'auto' }}>
+            <table>
+              <thead className="table-head">
+                <tr>
+                  <th>Strategy</th>
+                  <th>Trades</th>
+                  <th>Win Rate</th>
+                  <th style={{ textAlign: 'right' }}>Net PnL</th>
+                </tr>
+              </thead>
+              <tbody className="table-body">
+                {strategyPerformance.map((s, i) => (
+                  <tr key={i}>
+                    <td><span className="pill pill-accent">{s.tag}</span></td>
+                    <td style={{ color: 'var(--t2)' }}>{s.total}</td>
+                    <td style={{ color: s.winRate >= 50 ? 'var(--bull)' : 'var(--bear)', fontWeight: 600 }}>{s.winRate.toFixed(1)}%</td>
+                    <td style={{ textAlign: 'right', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: s.pnl > 0 ? 'var(--bull)' : s.pnl < 0 ? 'var(--bear)' : 'var(--t3)' }}>
+                      {s.pnl > 0 ? '+' : ''}${s.pnl.toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* ══ Heatmap ══ */}
+      <div className="card" style={{ padding: '20px 22px', marginBottom: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <div className="card-title">Performance Heatmap</div>
+          <div className="section-title">Day × Session</div>
+        </div>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ minWidth: 500 }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--line)' }}>
+                <th style={{ fontSize: 10.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--t3)', padding: '8px 14px 8px 0', textAlign: 'left', whiteSpace: 'nowrap' }}>Day</th>
+                {['London', 'New York', 'Tokyo', 'Sydney'].map(s => (
+                  <th key={s} style={{ fontSize: 10.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--t3)', padding: '8px 6px', textAlign: 'center', whiteSpace: 'nowrap' }}>{s}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {[1,2,3,4,5].map(day => (
+                <tr key={day}>
+                  <td style={{ padding: '5px 14px 5px 0', fontSize: 12, fontWeight: 600, color: 'var(--t3)', whiteSpace: 'nowrap' }}>
+                    {['','Mon','Tue','Wed','Thu','Fri'][day]}
+                  </td>
+                  {['LONDON','NEW_YORK','TOKYO','SYDNEY'].map(sess => {
+                    const cell = heatmapPerformance[day][sess];
+                    const has = cell.total > 0;
+                    const wr = has ? (cell.wins / cell.total) * 100 : 0;
+                    const isPos = cell.pnl > 0;
+                    return (
+                      <td key={sess} style={{ padding: '4px 5px' }}>
+                        <div style={{
+                          height: 54,
+                          borderRadius: 8,
+                          background: !has ? 'var(--bg-2)' : isPos ? 'var(--bull-dim)' : 'var(--bear-dim)',
+                          border: `1px solid ${!has ? 'var(--line)' : isPos ? 'var(--bull-line)' : 'var(--bear-line)'}`,
+                          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                          transition: 'all 0.15s'
+                        }}>
+                          {has ? (
+                            <>
+                              <span style={{ fontSize: 12.5, fontWeight: 700, color: isPos ? 'var(--bull)' : 'var(--bear)', letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums' }}>
+                                {isPos ? '+' : ''}${cell.pnl.toFixed(0)}
+                              </span>
+                              <span style={{ fontSize: 9.5, color: 'var(--t3)', marginTop: 2, fontWeight: 500 }}>
+                                {wr.toFixed(0)}% · {cell.total}
+                              </span>
+                            </>
+                          ) : (
+                            <span style={{ color: 'var(--line-hover)', fontSize: 14, fontWeight: 300 }}>—</span>
+                          )}
+                        </div>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ══ Recent Trades ══ */}
+      <div className="card" style={{ padding: '20px 22px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <div className="card-title">Recent Trades</div>
+          <Link to="/journal" style={{ fontSize: 12, fontWeight: 600, color: '#c4b5fd', textDecoration: 'none', background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)', padding: '4px 12px', borderRadius: 6 }}>
+            View all →
+          </Link>
+        </div>
+        {filteredTrades.length === 0 ? empty('No trades yet — log your first trade in Journal') : (
+          <table style={{ minWidth: 480 }}>
+            <thead className="table-head">
+              <tr>
+                <th>Pair</th>
+                <th>Direction</th>
+                <th>P/L</th>
+                <th style={{ textAlign: 'right' }}>Date</th>
+              </tr>
+            </thead>
+            <tbody className="table-body">
+              {filteredTrades.slice(0, 6).map(t => (
+                <tr key={t.id}>
+                  <td style={{ fontWeight: 700, color: 'var(--t1)', letterSpacing: '-0.01em' }}>{t.pair}</td>
+                  <td><span className={t.direction === 'LONG' ? 'pill pill-bull' : 'pill pill-bear'}>{t.direction}</span></td>
+                  <td style={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em', color: t.pnlUsd != null && t.pnlUsd > 0 ? 'var(--bull)' : t.pnlUsd != null && t.pnlUsd < 0 ? 'var(--bear)' : 'var(--t3)' }}>
+                    {t.pnlUsd != null ? `${t.pnlUsd > 0 ? '+' : ''}$${Math.abs(t.pnlUsd).toFixed(2)}` : <span className="pill pill-gold">Open</span>}
+                  </td>
+                  <td style={{ textAlign: 'right', color: 'var(--t3)', fontSize: 12 }}>{new Date(t.openedAt).toLocaleDateString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* ══ Expanded Chart Modal ══ */}
       {isChartExpanded && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,10,15,0.85)', backdropFilter: 'blur(16px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: 24 }}>
-          <div className="card-lg" style={{ width: '100%', maxWidth: 900, maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>Equity Curve — Expanded</span>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(20px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 24 }}>
+          <div className="card" style={{ width: '100%', maxWidth: 860, maxHeight: '88vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <div style={{ padding: '16px 22px', borderBottom: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--t1)', letterSpacing: '-0.03em' }}>Equity Curve — Expanded View</div>
               <button onClick={() => setIsChartExpanded(false)} className="btn btn-ghost" style={{ padding: '5px 8px' }}><X size={14} /></button>
             </div>
-            <div style={{ padding: '20px 24px', flex: 1, overflowY: 'auto' }}>
-              <div style={{ height: 360, position: 'relative' }} onMouseLeave={() => setHoveredPoint(null)}>
-                <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ width: '100%', height: '100%', color: '#6366f1', overflow: 'visible' }}>
+            <div style={{ padding: '22px 24px', flex: 1, overflowY: 'auto' }}>
+              <div style={{ height: 340, marginBottom: 20 }}>
+                <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
                   <defs>
-                    <linearGradient id="eqGrad2" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#6366f1" stopOpacity="0.25" />
-                      <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
+                    <linearGradient id="eqG2" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%"   stopColor={isProfit ? '#00d37f' : '#ff3b3b'} stopOpacity="0.18" />
+                      <stop offset="100%" stopColor={isProfit ? '#00d37f' : '#ff3b3b'} stopOpacity="0" />
                     </linearGradient>
                   </defs>
-                  <path d={`${equityData.pathData} L100,100 L0,100 Z`} fill="url(#eqGrad2)" />
-                  <path d={equityData.pathData} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                  <path d={`${equityData.pathData} L100,100 L0,100 Z`} fill="url(#eqG2)" />
+                  <path d={equityData.pathData} fill="none" stroke={isProfit ? '#00d37f' : '#ff3b3b'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
                 </svg>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginTop: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
                 {[
-                  { label: 'Starting Balance', value: '$10,000.00' },
-                  { label: 'Current Balance', value: `$${(10000 + metrics.totalPnl).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` },
-                  { label: 'Net Profit', value: `${metrics.totalPnl >= 0 ? '+' : ''}$${metrics.totalPnl.toFixed(2)}` },
-                  { label: 'Max Drawdown', value: `${(equityData.maxDrawdownPct || 0).toFixed(1)}%` },
+                  { label: 'Starting balance', value: `$${initialBalance.toLocaleString()}` },
+                  { label: 'Current balance', value: `$${(initialBalance + metrics.totalPnl).toLocaleString(undefined, {minimumFractionDigits: 2})}` },
+                  { label: 'Net return', value: `${metrics.totalPnl >= 0 ? '+' : ''}${(metrics.totalPnl / initialBalance * 100).toFixed(2)}%` },
+                  { label: 'Max drawdown', value: `${(equityData.maxDrawdownPct || 0).toFixed(1)}%` },
                 ].map(s => (
-                  <div key={s.label} style={{ background: 'var(--surface-2)', borderRadius: 9, padding: '12px 14px' }}>
-                    <div className="section-title" style={{ marginBottom: 4 }}>{s.label}</div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>{s.value}</div>
+                  <div key={s.label} style={{ background: 'var(--bg-2)', borderRadius: 10, padding: '12px 14px' }}>
+                    <div className="stat-label">{s.label}</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--t1)', letterSpacing: '-0.03em', marginTop: 4 }}>{s.value}</div>
                   </div>
                 ))}
               </div>
@@ -646,7 +732,7 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
     </div>
   );
 }
-

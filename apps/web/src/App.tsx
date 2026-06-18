@@ -1,7 +1,11 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, NavLink, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BookOpen, Calculator, Calendar as CalendarIcon, Globe2, CheckSquare, BarChart3, TrendingUp, Bot, HelpCircle, LogOut, User as UserIcon, Settings as SettingsIcon, Trophy, Camera } from 'lucide-react';
+import {
+  BookOpen, Calculator, Calendar as CalendarIcon, Globe2, CheckSquare,
+  BarChart3, TrendingUp, Bot, HelpCircle, LogOut, Settings as SettingsIcon,
+  Trophy, Camera, Zap, ChevronRight
+} from 'lucide-react';
 
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -29,93 +33,125 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { currentUser, isLoading } = useAuthStore();
   if (isLoading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-0)' }}>
-        <div style={{ width: 28, height: 28, border: '2px solid rgba(99,102,241,0.3)', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
+        <div style={{
+          width: 32, height: 32,
+          border: '2px solid rgba(124,58,237,0.2)',
+          borderTopColor: '#7c3aed',
+          borderRadius: '50%',
+          animation: 'spin 0.75s linear infinite'
+        }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
   return currentUser ? <>{children}</> : <Navigate to="/auth/login" replace />;
 };
 
+type NavGroup = { section: string; items: { to: string; icon: React.ReactNode; label: string }[] };
+
+const navGroups: NavGroup[] = [
+  {
+    section: 'Trading',
+    items: [
+      { to: '/journal',        icon: <BookOpen size={14} />,     label: 'Journal' },
+      { to: '/position-size',  icon: <Calculator size={14} />,   label: 'Position Sizer' },
+    ],
+  },
+  {
+    section: 'Tools',
+    items: [
+      { to: '/charts',         icon: <BarChart3 size={14} />,    label: 'Charts' },
+      { to: '/playbook',       icon: <Camera size={14} />,       label: 'Playbook' },
+      { to: '/calendar',       icon: <CalendarIcon size={14} />, label: 'Calendar' },
+      { to: '/sessions',       icon: <Globe2 size={14} />,       label: 'Sessions' },
+      { to: '/checklists',     icon: <CheckSquare size={14} />,  label: 'Checklists' },
+      { to: '/wiki',           icon: <HelpCircle size={14} />,   label: 'Wiki' },
+    ],
+  },
+  {
+    section: 'Analytics',
+    items: [
+      { to: '/dashboard',      icon: <BarChart3 size={14} />,    label: 'Dashboard' },
+      { to: '/routine',        icon: <CheckSquare size={14} />,  label: 'Daily Routine' },
+      { to: '/prop-firm',      icon: <Trophy size={14} />,       label: 'Prop Firm' },
+      { to: '/risk-simulator', icon: <TrendingUp size={14} />,   label: 'Risk Simulator' },
+      { to: '/macro',          icon: <Globe2 size={14} />,       label: 'Macro Edge' },
+      { to: '/simulator',      icon: <TrendingUp size={14} />,   label: 'Paper Trading' },
+    ],
+  },
+];
+
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const currentUser = useAuthStore(state => state.currentUser);
   const logout = useAuthStore(state => state.logout);
   const navigate = useNavigate();
-
   const handleLogout = () => { logout(); navigate('/auth/login'); };
 
-  const navSection = (label: string, links: { to: string; icon: React.ReactNode; label: string }[]) => (
-    <div style={{ marginBottom: 2 }}>
-      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', padding: '12px 12px 5px' }}>{label}</div>
-      {links.map(l => (
-        <NavLink key={l.to} to={l.to} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
-          {l.icon} {l.label}
-        </NavLink>
-      ))}
-    </div>
-  );
+  const initial = currentUser?.email?.[0]?.toUpperCase() ?? '?';
 
   return (
-    <div style={{ display: 'flex', height: '100vh', background: 'var(--surface-0)', fontFamily: 'var(--font-sans)', overflow: 'hidden' }}>
-      {/* ── Desktop Sidebar ── */}
-      <aside className="glass-panel hidden md:flex" style={{ width: 224, flexDirection: 'column', flexShrink: 0, zIndex: 20, userSelect: 'none' }}>
+    <div className="app-shell">
+
+      {/* ══ Desktop Sidebar ══ */}
+      <aside className="sidebar">
 
         {/* Logo */}
-        <div style={{ padding: '16px 14px 13px', display: 'flex', alignItems: 'center', gap: 9, borderBottom: '1px solid var(--border-subtle)' }}>
-          <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Globe2 size={15} style={{ color: '#a5b4fc' }} />
+        <div className="sidebar-logo">
+          <div className="sidebar-logo-icon">
+            <Zap size={14} color="#fff" />
           </div>
-          <span style={{ fontWeight: 700, fontSize: 14.5, letterSpacing: '-0.025em', color: 'var(--text-primary)' }}>ForexOS</span>
+          <span className="sidebar-logo-name">ForexOS</span>
         </div>
 
-        {/* Nav links */}
-        <nav style={{ flex: 1, overflowY: 'auto', padding: '6px 6px' }} className="custom-scrollbar">
-          {navSection('Trading', [
-            { to: '/journal', icon: <BookOpen size={14} />, label: 'Journal' },
-            { to: '/position-size', icon: <Calculator size={14} />, label: 'Position Sizer' },
-          ])}
-          {navSection('Tools', [
-            { to: '/charts', icon: <BarChart3 size={14} />, label: 'Charts' },
-            { to: '/playbook', icon: <Camera size={14} />, label: 'Playbook' },
-            { to: '/calendar', icon: <CalendarIcon size={14} />, label: 'Calendar' },
-            { to: '/sessions', icon: <Globe2 size={14} />, label: 'Sessions' },
-            { to: '/checklists', icon: <CheckSquare size={14} />, label: 'Checklists' },
-            { to: '/wiki', icon: <HelpCircle size={14} />, label: 'Wiki' },
-          ])}
-          {navSection('Analytics', [
-            { to: '/dashboard', icon: <BarChart3 size={14} />, label: 'Dashboard' },
-            { to: '/routine', icon: <CheckSquare size={14} />, label: 'Daily Routine' },
-            { to: '/prop-firm', icon: <Trophy size={14} />, label: 'Prop Firm' },
-            { to: '/risk-simulator', icon: <TrendingUp size={14} />, label: 'Risk Simulator' },
-            { to: '/macro', icon: <Globe2 size={14} />, label: 'Macro Edge' },
-            { to: '/simulator', icon: <TrendingUp size={14} />, label: 'Paper Trading' },
-          ])}
-          {/* AI Coach — special highlight */}
-          <div style={{ padding: '8px 0 4px' }}>
-            <NavLink to="/coach" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
-              style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.16)' }}>
-              <Bot size={14} style={{ color: '#a5b4fc' }} /> AI Coach
+        {/* Nav */}
+        <nav className="sidebar-nav">
+          {navGroups.map(group => (
+            <div key={group.section} style={{ marginBottom: 4 }}>
+              <div className="nav-section-label">{group.section}</div>
+              {group.items.map(item => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </NavLink>
+              ))}
+            </div>
+          ))}
+
+          {/* AI Coach — special accent button */}
+          <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--line)' }}>
+            <NavLink to="/coach" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+              style={{ background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)' }}>
+              <Bot size={14} style={{ color: '#c4b5fd' }} />
+              <span style={{ color: '#c4b5fd' }}>AI Coach</span>
+              <ChevronRight size={11} style={{ marginLeft: 'auto', color: 'rgba(196,181,253,0.4)' }} />
             </NavLink>
           </div>
         </nav>
 
-        {/* User footer */}
+        {/* Footer */}
         {currentUser && (
-          <div style={{ padding: '10px 8px', borderTop: '1px solid var(--border-subtle)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '5px 6px', marginBottom: 7 }}>
-              <div style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--surface-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <UserIcon size={12} style={{ color: 'var(--text-secondary)' }} />
-              </div>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentUser.email.split('@')[0]}</div>
-                <div style={{ fontSize: 10.5, color: 'var(--text-tertiary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentUser.email}</div>
+          <div className="sidebar-footer">
+            <div className="sidebar-user">
+              <div className="sidebar-avatar">{initial}</div>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '-0.02em' }}>
+                  {currentUser.email.split('@')[0]}
+                </div>
+                <div style={{ fontSize: 10.5, color: 'var(--t3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 1 }}>
+                  {currentUser.email}
+                </div>
               </div>
             </div>
             <div style={{ display: 'flex', gap: 5 }}>
-              <NavLink to="/settings" className="btn btn-ghost" style={{ flex: 1, fontSize: 11.5, padding: '6px 8px', gap: 5 }}>
+              <NavLink to="/settings" className="btn btn-ghost" style={{ flex: 1, fontSize: 12, padding: '6px 10px', gap: 5 }}>
                 <SettingsIcon size={12} /> Settings
               </NavLink>
-              <button onClick={handleLogout} className="btn btn-ghost" title="Sign Out" style={{ padding: '6px 9px', color: 'var(--text-tertiary)' }}>
+              <button onClick={handleLogout} className="btn btn-ghost" title="Sign out" style={{ padding: '6px 9px', color: 'var(--t3)' }}>
                 <LogOut size={12} />
               </button>
             </div>
@@ -123,43 +159,44 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
         )}
       </aside>
 
-      {/* ── Main content ── */}
-      <main style={{ flex: 1, overflowY: 'auto' }} className="pb-20 md:pb-0">
+      {/* ══ Main ══ */}
+      <main className="main-content">
         {/* Mobile header */}
-        <header className="md:hidden" style={{ position: 'sticky', top: 0, zIndex: 30, background: 'rgba(10,10,15,0.94)', backdropFilter: 'blur(14px)', borderBottom: '1px solid var(--border-subtle)', padding: '11px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 24, height: 24, borderRadius: 6, background: 'rgba(99,102,241,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Globe2 size={13} style={{ color: '#a5b4fc' }} />
+        <header className="mobile-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+            <div className="sidebar-logo-icon" style={{ width: 24, height: 24 }}>
+              <Zap size={12} color="#fff" />
             </div>
-            <span style={{ fontWeight: 700, fontSize: 14.5, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>ForexOS</span>
+            <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.04em', color: 'var(--t1)' }}>ForexOS</span>
           </div>
           {currentUser && (
-            <button onClick={handleLogout} style={{ background: 'var(--surface-2)', border: '1px solid var(--border-default)', borderRadius: 7, padding: '5px 8px', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex' }}>
-              <LogOut size={14} />
+            <button onClick={handleLogout} className="btn btn-ghost" style={{ padding: '5px 8px', fontSize: 12 }}>
+              <LogOut size={13} />
             </button>
           )}
         </header>
+
         {children}
       </main>
 
-      {/* ── Mobile bottom nav ── */}
-      <nav className="md:hidden" style={{ position: 'fixed', bottom: 0, width: '100%', background: 'rgba(10,10,15,0.97)', backdropFilter: 'blur(16px)', borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-around', padding: '7px 0 14px', zIndex: 40 }}>
-        {[
-          { to: '/journal', icon: <BookOpen size={19} />, label: 'Journal' },
-          { to: '/dashboard', icon: <BarChart3 size={19} />, label: 'Stats' },
-          { to: '/coach', icon: <Bot size={19} />, label: 'Coach' },
-          { to: '/calendar', icon: <CalendarIcon size={19} />, label: 'News' },
-          { to: '/checklists', icon: <CheckSquare size={19} />, label: 'Rules' },
-        ].map(l => (
-          <NavLink key={l.to} to={l.to} style={({ isActive }) => ({
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '3px 10px',
-            color: isActive ? '#a5b4fc' : 'var(--text-muted)', textDecoration: 'none', transition: 'color 0.15s'
-          })}>
-            {l.icon}
-            <span style={{ fontSize: 9.5, fontWeight: 600, letterSpacing: '0.02em' }}>{l.label}</span>
-          </NavLink>
-        ))}
+      {/* ══ Mobile bottom nav ══ */}
+      <nav className="mobile-nav">
+        <div className="mobile-nav-inner">
+          {[
+            { to: '/journal',   icon: <BookOpen size={20} />,    label: 'Journal' },
+            { to: '/dashboard', icon: <BarChart3 size={20} />,   label: 'Stats' },
+            { to: '/coach',     icon: <Bot size={20} />,         label: 'Coach' },
+            { to: '/calendar',  icon: <CalendarIcon size={20} />,label: 'News' },
+            { to: '/checklists',icon: <CheckSquare size={20} />, label: 'Rules' },
+          ].map(l => (
+            <NavLink key={l.to} to={l.to} className={({ isActive }) => `mobile-nav-item${isActive ? ' active' : ''}`}>
+              {l.icon}
+              {l.label}
+            </NavLink>
+          ))}
+        </div>
       </nav>
+
     </div>
   );
 };
@@ -172,25 +209,33 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Router>
         <Routes>
-          <Route path="/auth/login" element={<Login />} />
+          <Route path="/auth/login"    element={<Login />} />
           <Route path="/auth/register" element={<Register />} />
           <Route path="/" element={<Navigate to="/journal" replace />} />
-          <Route path="/journal" element={<ProtectedRoute><AppLayout><Journal /></AppLayout></ProtectedRoute>} />
-          <Route path="/charts" element={<ProtectedRoute><AppLayout><Charts /></AppLayout></ProtectedRoute>} />
-          <Route path="/position-size" element={<ProtectedRoute><AppLayout><PositionSizer /></AppLayout></ProtectedRoute>} />
-          <Route path="/calendar" element={<ProtectedRoute><AppLayout><Calendar /></AppLayout></ProtectedRoute>} />
-          <Route path="/sessions" element={<ProtectedRoute><AppLayout><Sessions /></AppLayout></ProtectedRoute>} />
-          <Route path="/checklists" element={<ProtectedRoute><AppLayout><Checklists /></AppLayout></ProtectedRoute>} />
-          <Route path="/wiki" element={<ProtectedRoute><AppLayout><Wiki /></AppLayout></ProtectedRoute>} />
-          <Route path="/playbook" element={<ProtectedRoute><AppLayout><Playbook /></AppLayout></ProtectedRoute>} />
-          <Route path="/dashboard" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
-          <Route path="/prop-firm" element={<ProtectedRoute><AppLayout><PropFirmTracker /></AppLayout></ProtectedRoute>} />
-          <Route path="/risk-simulator" element={<ProtectedRoute><AppLayout><RiskSimulator /></AppLayout></ProtectedRoute>} />
-          <Route path="/routine" element={<ProtectedRoute><AppLayout><Routine /></AppLayout></ProtectedRoute>} />
-          <Route path="/simulator" element={<ProtectedRoute><AppLayout><Simulator /></AppLayout></ProtectedRoute>} />
-          <Route path="/macro" element={<ProtectedRoute><AppLayout><MacroEdge /></AppLayout></ProtectedRoute>} />
-          <Route path="/coach" element={<ProtectedRoute><AppLayout><Coach /></AppLayout></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><AppLayout><Settings /></AppLayout></ProtectedRoute>} />
+
+          {([
+            ['/journal',        <Journal />],
+            ['/charts',         <Charts />],
+            ['/position-size',  <PositionSizer />],
+            ['/calendar',       <Calendar />],
+            ['/sessions',       <Sessions />],
+            ['/checklists',     <Checklists />],
+            ['/wiki',           <Wiki />],
+            ['/playbook',       <Playbook />],
+            ['/dashboard',      <Dashboard />],
+            ['/prop-firm',      <PropFirmTracker />],
+            ['/risk-simulator', <RiskSimulator />],
+            ['/routine',        <Routine />],
+            ['/simulator',      <Simulator />],
+            ['/macro',          <MacroEdge />],
+            ['/coach',          <Coach />],
+            ['/settings',       <Settings />],
+          ] as [string, React.ReactNode][]).map(([path, el]) => (
+            <Route key={path} path={path} element={
+              <ProtectedRoute><AppLayout>{el}</AppLayout></ProtectedRoute>
+            } />
+          ))}
+
           <Route path="*" element={<Navigate to="/journal" replace />} />
         </Routes>
       </Router>
