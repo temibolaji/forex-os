@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { TrendingUp, TrendingDown, Target, Activity, Award, Calendar, ArrowUpRight, ShieldCheck, Maximize2, X, BrainCircuit, Crosshair } from 'lucide-react';
+import { Calendar, ShieldCheck, Maximize2, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTradeStore } from '../store/tradeStore';
 import { useAuthStore } from '../store/authStore';
@@ -290,652 +290,357 @@ export default function Dashboard() {
     return { points, pathData, minBalance, maxBalance, hasData: true, maxDrawdownPct };
   }, [filteredTrades]);
 
+  // ── helper: stat card ──────────────────────────────────────
+  const StatCard = ({ label, value, color = 'var(--text-primary)' }: { label: string; value: string; color?: string }) => (
+    <div className="card" style={{ padding: '16px 18px' }}>
+      <div className="section-title" style={{ marginBottom: 6 }}>{label}</div>
+      <div className="metric" style={{ color }}>{value}</div>
+    </div>
+  );
+
+  // ── helper: card header ─────────────────────────────────────
+  const CardHeader = ({ title }: { title: string }) => (
+    <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '-0.01em', marginBottom: 14, paddingBottom: 12, borderBottom: '1px solid var(--border-subtle)' }}>{title}</div>
+  );
+
+  const emptyState = (msg: string) => (
+    <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 13, border: '1px dashed var(--border-subtle)', borderRadius: 10 }}>{msg}</div>
+  );
+
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto animate-in fade-in duration-500 font-sans">
-      {/* Welcome & Filter Banner */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <div style={{ padding: '24px 28px', maxWidth: 1100, margin: '0 auto', fontFamily: 'var(--font-sans)' }} className="animate-in">
+
+      {/* ── Header ── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 22, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 className="text-3xl font-display font-bold text-white tracking-tight">Dashboard</h1>
-          <p className="text-slate-400 mt-1 font-medium text-sm">Welcome back. Here's your trading performance and structural metrics.</p>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.03em' }}>Dashboard</h1>
+          <p style={{ fontSize: 12.5, color: 'var(--text-tertiary)', marginTop: 3 }}>Performance overview & analytics</p>
         </div>
-        
-        {dailyLossLimit !== null && metrics.todayPnl <= -dailyLossLimit && (
-          <div className="w-full md:w-auto bg-rose-500/20 border border-rose-500 rounded-xl p-3 flex items-center gap-3 animate-pulse">
-            <ShieldCheck size={24} className="text-rose-500 shrink-0" />
-            <div>
-              <p className="text-rose-400 font-bold text-sm">Daily Loss Limit Reached!</p>
-              <p className="text-rose-400/80 text-xs">Step away from the charts to protect your capital.</p>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          {dailyLossLimit !== null && metrics.todayPnl <= -dailyLossLimit && (
+            <div style={{ background: 'var(--red-bg)', border: '1px solid var(--red-border)', borderRadius: 8, padding: '7px 12px', display: 'flex', alignItems: 'center', gap: 7, fontSize: 12 }}>
+              <ShieldCheck size={14} style={{ color: 'var(--red)', flexShrink: 0 }} />
+              <span style={{ color: 'var(--red)', fontWeight: 600 }}>Daily loss limit reached — step away.</span>
             </div>
-          </div>
-        )}
-        
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          <div className="flex items-center space-x-3 glass-panel p-1.5 rounded-xl border border-white/10 shadow-sm shrink-0 transition-all hover:border-indigo-500/50">
-            <Calendar size={16} className="text-slate-400 ml-2" />
-            <select 
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="px-3 py-1.5 bg-transparent text-slate-200 text-sm font-semibold focus:outline-none cursor-pointer"
-            >
-              <option value="7d" className="bg-slate-900">Last 7 Days</option>
-              <option value="30d" className="bg-slate-900">Last 30 Days</option>
-              <option value="this_year" className="bg-slate-900">This Year</option>
-              <option value="all_time" className="bg-slate-900">All Time</option>
-              <option value="custom" className="bg-slate-900">Custom Range</option>
+          )}
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--surface-2)', border: '1px solid var(--border-default)', borderRadius: 8, padding: '6px 10px' }}>
+            <Calendar size={13} style={{ color: 'var(--text-tertiary)' }} />
+            <select value={dateFilter} onChange={e => setDateFilter(e.target.value)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: 12.5, fontWeight: 600, outline: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)' }}>
+              <option value="7d" style={{ background: 'var(--surface-2)' }}>Last 7 Days</option>
+              <option value="30d" style={{ background: 'var(--surface-2)' }}>Last 30 Days</option>
+              <option value="this_year" style={{ background: 'var(--surface-2)' }}>This Year</option>
+              <option value="all_time" style={{ background: 'var(--surface-2)' }}>All Time</option>
+              <option value="custom" style={{ background: 'var(--surface-2)' }}>Custom</option>
             </select>
           </div>
-          
+
           {dateFilter === 'custom' && (
-            <div className="flex items-center space-x-2 glass-panel p-1.5 rounded-xl border border-indigo-500/30 shadow-sm animate-in slide-in-from-left-2 duration-200 ring-1 ring-indigo-500/10">
-              <input 
-                type="date" 
-                value={customStartDate}
-                onChange={(e) => setCustomStartDate(e.target.value)}
-                className="px-2 py-1 text-xs text-slate-200 bg-slate-900 font-semibold focus:outline-none border border-slate-700 rounded-lg hover:border-indigo-500/50 transition-colors"
-              />
-              <span className="text-xs text-slate-500 font-semibold">to</span>
-              <input 
-                type="date" 
-                value={customEndDate}
-                onChange={(e) => setCustomEndDate(e.target.value)}
-                className="px-2 py-1 text-xs text-slate-200 bg-slate-900 font-semibold focus:outline-none border border-slate-700 rounded-lg hover:border-indigo-500/50 transition-colors"
-              />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--surface-2)', border: '1px solid var(--border-default)', borderRadius: 8, padding: '6px 10px' }}>
+              <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)} className="input" style={{ padding: '0', background: 'transparent', border: 'none', fontSize: 12, width: 120 }} />
+              <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>→</span>
+              <input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)} className="input" style={{ padding: '0', background: 'transparent', border: 'none', fontSize: 12, width: 120 }} />
             </div>
           )}
         </div>
       </div>
 
-      {/* High-Level Metrics */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6 mb-8">
-        <div className="glass-panel bg-slate-900/40 p-5 rounded-3xl border border-white/5 shadow-sm relative overflow-hidden group hover:border-indigo-500/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/10">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-indigo-500/10 rounded-bl-full transition-transform duration-300 group-hover:scale-110"></div>
-          <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5">
-            <Target size={14} className="text-indigo-400" /> Total Trades
-          </div>
-          <div className="text-3xl font-display font-black text-white">{metrics.totalTrades}</div>
-        </div>
-
-        <div className="glass-panel bg-slate-900/40 p-5 rounded-3xl border border-white/5 shadow-sm relative overflow-hidden group hover:border-emerald-500/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/10">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/10 rounded-bl-full transition-transform duration-300 group-hover:scale-110"></div>
-          <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5">
-            <Award size={14} className="text-emerald-400" /> Win Rate
-          </div>
-          <div className="text-3xl font-display font-black text-emerald-400">{metrics.winRate}%</div>
-        </div>
-
-        <div className="glass-panel bg-slate-900/40 p-5 rounded-3xl border border-white/5 shadow-sm relative overflow-hidden group hover:border-sky-500/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-sky-500/10">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-sky-500/10 rounded-bl-full transition-transform duration-300 group-hover:scale-110"></div>
-          <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5">
-            <Activity size={14} className="text-sky-400" /> Profit Factor
-          </div>
-          <div className="text-3xl font-display font-black text-white">{metrics.profitFactor}</div>
-        </div>
-
-        <div className="glass-panel bg-slate-900/40 p-5 rounded-3xl border border-white/5 shadow-sm relative overflow-hidden group hover:border-violet-500/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-violet-500/10">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-violet-500/10 rounded-bl-full transition-transform duration-300 group-hover:scale-110"></div>
-          <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5">
-            <TrendingUp size={14} className="text-violet-400" /> Expectancy
-          </div>
-          <div className="text-3xl font-display font-black text-white">${metrics.expectancyUsd.toFixed(2)}</div>
-        </div>
-
-        <div className="glass-panel bg-slate-900/40 p-5 rounded-3xl border border-white/5 shadow-sm relative overflow-hidden group hover:border-rose-500/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-rose-500/10">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-rose-500/10 rounded-bl-full transition-transform duration-300 group-hover:scale-110"></div>
-          <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5">
-            <TrendingDown size={14} className="text-rose-400" /> Max Drawdown
-          </div>
-          <div className="text-3xl font-display font-black text-white">{(equityData.maxDrawdownPct || 0).toFixed(1)}%</div>
-        </div>
-
-        <div className="bg-gradient-to-br from-indigo-500 to-indigo-700 p-5 rounded-3xl shadow-lg relative overflow-hidden col-span-2 md:col-span-1 lg:col-span-1 group hover:shadow-indigo-500/40 transition-all duration-300 hover:-translate-y-1">
-          <div className="absolute top-[-50%] right-[-20%] w-full h-full bg-white/20 rounded-full blur-2xl pointer-events-none transition-transform duration-500 group-hover:scale-110"></div>
-          <div className="text-indigo-200 text-[10px] font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5">
-            <ShieldCheck size={14} className="text-indigo-200" /> Net Profit
-          </div>
-          <div className="text-3xl font-display font-black text-white flex items-center gap-1">
-            ${metrics.totalPnl.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            <ArrowUpRight size={20} className="text-indigo-300" />
+      {/* ── Stat Cards ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10, marginBottom: 20 }}>
+        <StatCard label="Total Trades" value={String(metrics.totalTrades)} />
+        <StatCard label="Win Rate" value={`${metrics.winRate}%`} color="var(--green)" />
+        <StatCard label="Profit Factor" value={metrics.profitFactor} />
+        <StatCard label="Expectancy" value={`$${metrics.expectancyUsd.toFixed(2)}`} />
+        <StatCard label="Max Drawdown" value={`${(equityData.maxDrawdownPct || 0).toFixed(1)}%`} color="var(--red)" />
+        <div style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 14, padding: '16px 18px' }}>
+          <div className="section-title" style={{ marginBottom: 6, color: 'rgba(165,180,252,0.7)' }}>Net Profit</div>
+          <div className="metric" style={{ color: metrics.totalPnl >= 0 ? '#a5b4fc' : 'var(--red)' }}>
+            {metrics.totalPnl >= 0 ? '+' : ''}${metrics.totalPnl.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
-        {/* Colorful Equity Curve Chart */}
-        <div className="xl:col-span-2 glass-panel bg-slate-900/40 p-6 md:p-8 rounded-[2rem] border border-white/5 shadow-sm space-y-4 transition-all">
-          <div className="flex justify-between items-center">
-            <h2 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
-              <TrendingUp size={16} className="text-indigo-400" /> Equity Curve
-            </h2>
-            
-            <div className="flex items-center space-x-2">
-              <span className="text-[9px] font-bold text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 rounded-full uppercase tracking-widest flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-ping"></span>
-                All-Time High
+      {/* ── Main Grid ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+
+        {/* Equity Curve — spans 2 cols */}
+        <div className="card-lg" style={{ gridColumn: 'span 2', padding: '18px 20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, paddingBottom: 12, borderBottom: '1px solid var(--border-subtle)' }}>
+            <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '-0.01em' }}>Equity Curve</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 600, color: '#a5b4fc', background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.18)', padding: '3px 9px', borderRadius: 999 }}>
+                <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#a5b4fc', display: 'inline-block' }} />
+                Live
               </span>
-              <button 
-                onClick={() => setIsChartExpanded(true)}
-                className="p-1.5 hover:bg-slate-800 rounded-xl text-slate-400 hover:text-indigo-400 transition-colors cursor-pointer border border-white/5 bg-slate-900"
-                title="Expand View"
-              >
-                <Maximize2 size={14} />
+              <button onClick={() => setIsChartExpanded(true)} style={{ background: 'var(--surface-2)', border: '1px solid var(--border-default)', borderRadius: 7, padding: '4px 6px', color: 'var(--text-tertiary)', cursor: 'pointer', display: 'flex' }}>
+                <Maximize2 size={12} />
               </button>
             </div>
           </div>
-
-          <div className="h-72 w-full rounded-2xl flex flex-col justify-end relative overflow-visible px-4 pt-6 pb-8 mt-2" onMouseLeave={() => setHoveredPoint(null)}>
-            {/* Grid background lines */}
-            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none py-6 opacity-10">
-              <div className="border-b border-white w-full"></div>
-              <div className="border-b border-white w-full"></div>
-              <div className="border-b border-white w-full"></div>
-              <div className="border-b border-white w-full"></div>
+          <div style={{ height: 220, position: 'relative', overflow: 'visible' }} onMouseLeave={() => setHoveredPoint(null)}>
+            {/* Grid lines */}
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', pointerEvents: 'none', opacity: 0.05 }}>
+              {[0,1,2,3].map(i => <div key={i} style={{ borderBottom: '1px solid #fff', width: '100%' }} />)}
             </div>
-
-            {/* Custom SVG Line Chart */}
-            <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full text-indigo-500 overflow-visible relative z-10">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ width: '100%', height: '100%', color: '#6366f1', overflow: 'visible' }}>
               <defs>
-                <linearGradient id="chartIndigoGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#6366f1" stopOpacity="0.4"/>
-                  <stop offset="100%" stopColor="#6366f1" stopOpacity="0"/>
+                <linearGradient id="eqGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#6366f1" stopOpacity="0.25" />
+                  <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
                 </linearGradient>
               </defs>
-              <path d={`${equityData.pathData} L100,100 L0,100 Z`} fill="url(#chartIndigoGradient)" />
-              <path d={equityData.pathData} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-              
+              <path d={`${equityData.pathData} L100,100 L0,100 Z`} fill="url(#eqGrad)" />
+              <path d={equityData.pathData} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
               {equityData.points.map((p, i) => (
                 <g key={i} onMouseEnter={() => setHoveredPoint(i)}>
-                  <circle cx={p.x} cy={p.y} r="4" fill="transparent" className="cursor-pointer pointer-events-auto" vectorEffect="non-scaling-stroke" />
-                  <circle 
-                    cx={p.x} 
-                    cy={p.y} 
-                    r={hoveredPoint === i ? "5" : "0"} 
-                    className="fill-slate-900 stroke-indigo-400 stroke-2 pointer-events-none transition-all duration-200"
-                    vectorEffect="non-scaling-stroke"
-                  />
+                  <circle cx={p.x} cy={p.y} r="5" fill="transparent" style={{ cursor: 'pointer' }} vectorEffect="non-scaling-stroke" />
+                  <circle cx={p.x} cy={p.y} r={hoveredPoint === i ? "4" : "0"} fill="#0a0a0f" stroke="#6366f1" strokeWidth="2" vectorEffect="non-scaling-stroke" style={{ transition: 'r 0.15s' }} />
                 </g>
               ))}
               {equityData.hasData && (
-                <>
-                  <circle cx="100" cy={equityData.points[equityData.points.length - 1].y} r="3" className="fill-indigo-400 animate-ping" />
-                  <circle cx="100" cy={equityData.points[equityData.points.length - 1].y} r="2" className="fill-indigo-400 stroke-slate-950 stroke-1" />
-                </>
+                <circle cx="100" cy={equityData.points[equityData.points.length - 1].y} r="2.5" fill="#6366f1" stroke="#0a0a0f" strokeWidth="1" vectorEffect="non-scaling-stroke" />
               )}
             </svg>
-
             {hoveredPoint !== null && (
-              <div 
-                className="absolute z-20 glass-panel bg-slate-900/90 text-white px-3 py-2.5 rounded-xl shadow-xl pointer-events-none transform -translate-x-1/2 -translate-y-full border border-white/10 backdrop-blur-md"
-                style={{ 
-                  left: `calc(1rem + ${equityData.points[hoveredPoint].x}% * 0.85)`, 
-                  top: `calc(1.5rem + ${equityData.points[hoveredPoint].y}% * 0.7 - 10px)` 
-                }}
-              >
-                <div className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-1">{equityData.points[hoveredPoint].date}</div>
-                <div className="text-sm font-display font-bold">Bal: ${equityData.points[hoveredPoint].balance.toFixed(2)}</div>
-                {equityData.points[hoveredPoint].pnl !== undefined && equityData.points[hoveredPoint].pnl !== 0 && (
-                  <div className={`text-xs font-bold mt-0.5 ${equityData.points[hoveredPoint].pnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                    {equityData.points[hoveredPoint].pnl > 0 ? "+" : ""}{equityData.points[hoveredPoint].pnl.toFixed(2)}
+              <div style={{ position: 'absolute', zIndex: 20, background: 'var(--surface-1)', border: '1px solid var(--border-default)', borderRadius: 9, padding: '8px 12px', pointerEvents: 'none', transform: 'translateX(-50%) translateY(-110%)', left: `calc(${equityData.points[hoveredPoint].x}% * 0.87 + 1%)`, top: `calc(${equityData.points[hoveredPoint].y}% * 0.8 + 5%)`, boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
+                <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginBottom: 2 }}>{equityData.points[hoveredPoint].date}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>${equityData.points[hoveredPoint].balance.toFixed(2)}</div>
+                {equityData.points[hoveredPoint].pnl !== 0 && (
+                  <div style={{ fontSize: 11, fontWeight: 600, color: equityData.points[hoveredPoint].pnl >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                    {equityData.points[hoveredPoint].pnl > 0 ? '+' : ''}{equityData.points[hoveredPoint].pnl.toFixed(2)}
                   </div>
                 )}
               </div>
             )}
-
-            {/* X-Axis Labels */}
-            <div className="absolute inset-x-4 bottom-0 flex justify-between text-[9px] text-slate-500 font-bold uppercase tracking-widest">
-              {equityData.points.length > 2 ? (
-                <>
-                  <span>{equityData.points[0].date}</span>
-                  <span>Today</span>
-                </>
-              ) : (
-                <>
-                  <span>Start</span>
-                  <span>Today</span>
-                </>
-              )}
-            </div>
           </div>
         </div>
 
-        {/* Trade Distribution */}
-        <div className="glass-panel bg-slate-900/40 p-6 md:p-8 rounded-[2rem] border border-white/5 shadow-sm space-y-6">
-          <h2 className="text-sm font-bold text-white uppercase tracking-widest border-b border-white/5 pb-4">Session Performance</h2>
-          <div className="space-y-6">
-            <div>
-              <div className="flex justify-between text-xs mb-2">
-                <span className="font-bold text-slate-400 uppercase tracking-wider">London</span>
-                <span className={`font-bold ${sessionPerformance.LONDON >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                  {sessionPerformance.LONDON >= 0 ? '+' : '-'}${Math.abs(sessionPerformance.LONDON).toFixed(2)}
-                </span>
-              </div>
-              <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                <div className={`h-full ${sessionPerformance.LONDON >= 0 ? 'bg-emerald-500' : 'bg-rose-500'} rounded-full`} style={{ width: Math.max(5, (Math.abs(sessionPerformance.LONDON) / maxSessionPerf) * 100) + '%' }}></div>
-              </div>
-            </div>
-            
-            <div>
-              <div className="flex justify-between text-xs mb-2">
-                <span className="font-bold text-slate-400 uppercase tracking-wider">New York</span>
-                <span className={`font-bold ${sessionPerformance.NEW_YORK >= 0 ? 'text-indigo-400' : 'text-rose-400'}`}>
-                  {sessionPerformance.NEW_YORK >= 0 ? '+' : '-'}${Math.abs(sessionPerformance.NEW_YORK).toFixed(2)}
-                </span>
-              </div>
-              <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                <div className={`h-full ${sessionPerformance.NEW_YORK >= 0 ? 'bg-indigo-500' : 'bg-rose-500'} rounded-full`} style={{ width: Math.max(5, (Math.abs(sessionPerformance.NEW_YORK) / maxSessionPerf) * 100) + '%' }}></div>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex justify-between text-xs mb-2">
-                <span className="font-bold text-slate-400 uppercase tracking-wider">Tokyo</span>
-                <span className={`font-bold ${sessionPerformance.TOKYO >= 0 ? 'text-amber-400' : 'text-rose-400'}`}>
-                  {sessionPerformance.TOKYO >= 0 ? '+' : '-'}${Math.abs(sessionPerformance.TOKYO).toFixed(2)}
-                </span>
-              </div>
-              <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                <div className={`h-full ${sessionPerformance.TOKYO >= 0 ? 'bg-amber-500' : 'bg-rose-500'} rounded-full`} style={{ width: Math.max(5, (Math.abs(sessionPerformance.TOKYO) / maxSessionPerf) * 100) + '%' }}></div>
-              </div>
-            </div>
-            
-            <div>
-              <div className="flex justify-between text-xs mb-2">
-                <span className="font-bold text-slate-400 uppercase tracking-wider">Sydney</span>
-                <span className={`font-bold ${sessionPerformance.SYDNEY >= 0 ? 'text-sky-400' : 'text-rose-400'}`}>
-                  {sessionPerformance.SYDNEY >= 0 ? '+' : '-'}${Math.abs(sessionPerformance.SYDNEY).toFixed(2)}
-                </span>
-              </div>
-              <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                <div className={`h-full ${sessionPerformance.SYDNEY >= 0 ? 'bg-sky-500' : 'bg-rose-500'} rounded-full`} style={{ width: Math.max(5, (Math.abs(sessionPerformance.SYDNEY) / maxSessionPerf) * 100) + '%' }}></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Strategy Performance */}
-        <div className="xl:col-span-2 glass-panel bg-slate-900/40 p-6 md:p-8 rounded-[2rem] border border-white/5 shadow-sm space-y-6">
-          <div className="flex justify-between items-center border-b border-white/5 pb-4">
-            <h2 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
-              <Award size={16} className="text-emerald-400" /> Strategy Performance
-            </h2>
-          </div>
-          <div className="overflow-x-auto custom-scrollbar">
-            {strategyPerformance.length === 0 ? (
-              <div className="py-8 text-center text-slate-500 font-medium text-sm border border-dashed border-white/10 rounded-2xl">No strategy tags found in closed trades.</div>
-            ) : (
-              <table className="w-full text-left border-collapse min-w-[400px]">
-                <thead>
-                  <tr className="border-b border-white/5 text-slate-500 text-[10px] font-bold uppercase tracking-widest">
-                    <th className="pb-3 pr-4">Strategy Tag</th>
-                    <th className="pb-3 px-4">Trades</th>
-                    <th className="pb-3 px-4">Win Rate</th>
-                    <th className="pb-3 text-right pl-4">Net PnL</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {strategyPerformance.map((strat, i) => (
-                    <tr key={i} className="hover:bg-white/[0.02] transition-colors">
-                      <td className="py-3 pr-4 font-display font-bold text-white">
-                        <span className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-1 rounded-md text-xs">{strat.tag}</span>
-                      </td>
-                      <td className="py-3 px-4 text-slate-300 font-medium">{strat.total}</td>
-                      <td className="py-3 px-4 text-slate-300 font-medium">
-                        <span className={strat.winRate >= 50 ? 'text-emerald-400' : 'text-rose-400'}>{strat.winRate.toFixed(1)}%</span>
-                      </td>
-                      <td className={`py-3 pl-4 text-right font-display font-bold ${strat.pnl > 0 ? 'text-emerald-400' : strat.pnl < 0 ? 'text-rose-400' : 'text-slate-500'}`}>
-                        {strat.pnl > 0 ? `+$${strat.pnl.toFixed(2)}` : `-$${Math.abs(strat.pnl).toFixed(2)}`}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
-
-        {/* Currency Exposure Tracker */}
-        <div className="glass-panel bg-slate-900/40 p-6 md:p-8 rounded-[2rem] border border-white/5 shadow-sm space-y-6">
-          <div className="flex justify-between items-center border-b border-white/5 pb-4">
-            <h2 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
-              <Activity size={16} className="text-rose-400" /> Live Exposure
-            </h2>
-          </div>
-          
-          <div className="space-y-4">
-            {currencyExposure.length === 0 ? (
-              <div className="py-8 text-center text-slate-500 font-medium text-sm border border-dashed border-white/10 rounded-2xl">No open trades.</div>
-            ) : (
-              <>
-                {currencyExposure.some(c => Math.abs(c[1]) > 1) && (
-                  <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-3 flex items-start gap-3">
-                    <ShieldCheck size={18} className="text-rose-400 mt-0.5 shrink-0" />
-                    <div>
-                      <h4 className="text-xs font-bold text-rose-400 uppercase tracking-wider mb-1">Heavy Exposure Warning</h4>
-                      <p className="text-[11px] text-rose-300/80 font-medium leading-relaxed">You have multiple open positions exposed to the same currency. This increases risk.</p>
-                    </div>
+        {/* Session Performance */}
+        <div className="card-lg" style={{ padding: '18px 20px' }}>
+          <CardHeader title="Session Performance" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {(['LONDON','NEW_YORK','TOKYO','SYDNEY'] as const).map(sess => {
+              const labels: Record<string, string> = { LONDON: 'London', NEW_YORK: 'New York', TOKYO: 'Tokyo', SYDNEY: 'Sydney' };
+              const v = sessionPerformance[sess];
+              return (
+                <div key={sess}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                    <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--text-secondary)' }}>{labels[sess]}</span>
+                    <span style={{ fontSize: 11.5, fontWeight: 700, color: v >= 0 ? 'var(--green)' : 'var(--red)' }}>{v >= 0 ? '+' : ''}${Math.abs(v).toFixed(2)}</span>
                   </div>
-                )}
-                
-                <div className="space-y-3 mt-2">
-                  {currencyExposure.map(([currency, exposure]) => (
-                    <div key={currency} className="flex justify-between items-center">
-                      <span className="font-bold text-slate-300 text-xs">{currency}</span>
-                      <span className={`text-xs font-bold px-2 py-1 rounded-md border ${exposure > 0 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'}`}>
-                        {exposure > 0 ? `LONG (+${exposure})` : `SHORT (${exposure})`}
-                      </span>
-                    </div>
-                  ))}
+                  <div style={{ height: 3, background: 'var(--surface-3)', borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', background: v >= 0 ? 'var(--green)' : 'var(--red)', borderRadius: 2, width: Math.max(4, (Math.abs(v) / maxSessionPerf) * 100) + '%', transition: 'width 0.4s ease' }} />
+                  </div>
                 </div>
-              </>
-            )}
+              );
+            })}
           </div>
         </div>
 
-        {/* Emotions Impact */}
-        <div className="glass-panel bg-slate-900/40 p-6 md:p-8 rounded-[2rem] border border-white/5 shadow-sm space-y-6">
-          <div className="flex justify-between items-center border-b border-white/5 pb-4">
-            <h2 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
-              <BrainCircuit size={16} className="text-pink-400" /> Psychology & Emotions
-            </h2>
-          </div>
-          <div className="overflow-x-auto custom-scrollbar">
-            {emotionPerformance.length === 0 ? (
-              <div className="py-8 text-center text-slate-500 font-medium text-sm border border-dashed border-white/10 rounded-2xl">No emotion data logged yet.</div>
-            ) : (
-              <table className="w-full text-left border-collapse min-w-[300px]">
-                <thead>
-                  <tr className="border-b border-white/5 text-slate-500 text-[10px] font-bold uppercase tracking-widest">
-                    <th className="pb-3 pr-4">Emotion</th>
-                    <th className="pb-3 px-4">Trades</th>
-                    <th className="pb-3 px-4">Win Rate</th>
-                    <th className="pb-3 text-right pl-4">Net PnL</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {emotionPerformance.map((emo, i) => (
-                    <tr key={i} className="hover:bg-white/[0.02] transition-colors">
-                      <td className="py-3 pr-4 font-display font-bold text-white text-xs">
-                        <span className="bg-pink-500/10 text-pink-400 border border-pink-500/20 px-2 py-1 rounded-md">{emo.emotion}</span>
-                      </td>
-                      <td className="py-3 px-4 text-slate-300 font-medium">{emo.total}</td>
-                      <td className="py-3 px-4 text-slate-300 font-medium">
-                        <span className={emo.winRate >= 50 ? 'text-emerald-400' : 'text-rose-400'}>{emo.winRate.toFixed(1)}%</span>
-                      </td>
-                      <td className={`py-3 pl-4 text-right font-display font-bold ${emo.pnl > 0 ? 'text-emerald-400' : emo.pnl < 0 ? 'text-rose-400' : 'text-slate-500'}`}>
-                        {emo.pnl > 0 ? `+$${emo.pnl.toFixed(2)}` : `-$${Math.abs(emo.pnl).toFixed(2)}`}
+        {/* Strategy Performance — spans 2 cols */}
+        <div className="card-lg" style={{ gridColumn: 'span 2', padding: '18px 20px' }}>
+          <CardHeader title="Strategy Performance" />
+          {strategyPerformance.length === 0 ? emptyState('No strategy tags found in closed trades.') : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 380 }}>
+                <thead><tr className="table-header"><th style={{ textAlign: 'left' }}>Strategy</th><th style={{ textAlign: 'left' }}>Trades</th><th style={{ textAlign: 'left' }}>Win Rate</th><th style={{ textAlign: 'right' }}>Net PnL</th></tr></thead>
+                <tbody>
+                  {strategyPerformance.map((s, i) => (
+                    <tr key={i} className="table-row">
+                      <td><span className="badge badge-indigo">{s.tag}</span></td>
+                      <td>{s.total}</td>
+                      <td style={{ color: s.winRate >= 50 ? 'var(--green)' : 'var(--red)', fontWeight: 600 }}>{s.winRate.toFixed(1)}%</td>
+                      <td style={{ textAlign: 'right', fontWeight: 700, color: s.pnl > 0 ? 'var(--green)' : s.pnl < 0 ? 'var(--red)' : 'var(--text-tertiary)' }}>
+                        {s.pnl > 0 ? '+' : ''}${s.pnl.toFixed(2)}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            )}
-          </div>
+            </div>
+          )}
+        </div>
+
+        {/* Live Exposure */}
+        <div className="card-lg" style={{ padding: '18px 20px' }}>
+          <CardHeader title="Live Exposure" />
+          {currencyExposure.length === 0 ? emptyState('No open trades.') : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {currencyExposure.some(c => Math.abs(c[1]) > 1) && (
+                <div style={{ background: 'var(--red-bg)', border: '1px solid var(--red-border)', borderRadius: 8, padding: '8px 10px', marginBottom: 4 }}>
+                  <p style={{ fontSize: 11, color: 'var(--red)', fontWeight: 600, margin: 0 }}>⚠ Heavy exposure — correlated positions.</p>
+                </div>
+              )}
+              {currencyExposure.map(([cur, exp]) => (
+                <div key={cur} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)' }}>{cur}</span>
+                  <span className={exp > 0 ? 'badge badge-green' : 'badge badge-red'}>{exp > 0 ? `LONG +${exp}` : `SHORT ${exp}`}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Psychology */}
+        <div className="card-lg" style={{ padding: '18px 20px' }}>
+          <CardHeader title="Psychology & Emotions" />
+          {emotionPerformance.length === 0 ? emptyState('No emotion data logged yet.') : (
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead><tr className="table-header"><th style={{ textAlign: 'left' }}>Emotion</th><th style={{ textAlign: 'left' }}>WR</th><th style={{ textAlign: 'right' }}>PnL</th></tr></thead>
+              <tbody>
+                {emotionPerformance.map((e, i) => (
+                  <tr key={i} className="table-row">
+                    <td style={{ fontSize: 11 }}><span style={{ background: 'rgba(244,63,94,0.08)', color: '#fb7185', border: '1px solid rgba(244,63,94,0.18)', borderRadius: 5, padding: '2px 7px', fontSize: 11, fontWeight: 600 }}>{e.emotion}</span></td>
+                    <td style={{ fontWeight: 600, color: e.winRate >= 50 ? 'var(--green)' : 'var(--red)' }}>{e.winRate.toFixed(0)}%</td>
+                    <td style={{ textAlign: 'right', fontWeight: 700, color: e.pnl > 0 ? 'var(--green)' : 'var(--red)' }}>{e.pnl > 0 ? '+' : ''}${e.pnl.toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
 
         {/* Execution Efficiency */}
-        <div className="glass-panel bg-slate-900/40 p-6 md:p-8 rounded-[2rem] border border-white/5 shadow-sm space-y-6">
-          <div className="flex justify-between items-center border-b border-white/5 pb-4">
-            <h2 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
-              <Crosshair size={16} className="text-amber-400" /> Execution Efficiency
-            </h2>
-          </div>
-          <div className="space-y-4">
-            {efficiencyMetrics.avgPlannedRR === 0 ? (
-               <div className="py-8 text-center text-slate-500 font-medium text-sm border border-dashed border-white/10 rounded-2xl">No valid R:R data logged.</div>
-            ) : (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-slate-800/50 p-4 rounded-xl border border-white/5">
-                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Planned R:R</div>
-                  <div className="text-xl font-display font-bold text-white">1 : {efficiencyMetrics.avgPlannedRR.toFixed(2)}</div>
+        <div className="card-lg" style={{ padding: '18px 20px' }}>
+          <CardHeader title="Execution Efficiency" />
+          {efficiencyMetrics.avgPlannedRR === 0 ? emptyState('No R:R data logged yet.') : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <div style={{ background: 'var(--surface-2)', borderRadius: 9, padding: '10px 12px' }}>
+                  <div className="section-title" style={{ marginBottom: 4 }}>Planned R:R</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>1 : {efficiencyMetrics.avgPlannedRR.toFixed(2)}</div>
                 </div>
-                <div className="bg-slate-800/50 p-4 rounded-xl border border-white/5">
-                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Actual R:R</div>
-                  <div className={`text-xl font-display font-bold ${efficiencyMetrics.avgActualRR >= efficiencyMetrics.avgPlannedRR ? 'text-emerald-400' : 'text-rose-400'}`}>
-                    1 : {efficiencyMetrics.avgActualRR.toFixed(2)}
-                  </div>
-                </div>
-                <div className="col-span-2 bg-indigo-500/10 p-4 rounded-xl border border-indigo-500/20 flex flex-col items-center justify-center">
-                  <div className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-1">Efficiency Score</div>
-                  <div className={`text-3xl font-display font-black ${efficiencyMetrics.efficiencyScore >= 80 ? 'text-emerald-400' : efficiencyMetrics.efficiencyScore >= 50 ? 'text-amber-400' : 'text-rose-400'}`}>
-                    {efficiencyMetrics.efficiencyScore.toFixed(1)}%
-                  </div>
-                  <div className="text-xs text-indigo-300/80 mt-1 text-center max-w-[200px]">
-                    {efficiencyMetrics.efficiencyScore >= 80 ? "Great job letting winners run!" : "You're cutting winners too early."}
-                  </div>
+                <div style={{ background: 'var(--surface-2)', borderRadius: 9, padding: '10px 12px' }}>
+                  <div className="section-title" style={{ marginBottom: 4 }}>Actual R:R</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, letterSpacing: '-0.03em', color: efficiencyMetrics.avgActualRR >= efficiencyMetrics.avgPlannedRR ? 'var(--green)' : 'var(--red)' }}>1 : {efficiencyMetrics.avgActualRR.toFixed(2)}</div>
                 </div>
               </div>
-            )}
-          </div>
+              <div style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 9, padding: '12px', textAlign: 'center' }}>
+                <div className="section-title" style={{ marginBottom: 4, color: '#a5b4fc' }}>Efficiency Score</div>
+                <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.04em', color: efficiencyMetrics.efficiencyScore >= 80 ? 'var(--green)' : efficiencyMetrics.efficiencyScore >= 50 ? 'var(--amber)' : 'var(--red)' }}>
+                  {efficiencyMetrics.efficiencyScore.toFixed(1)}%
+                </div>
+                <div style={{ fontSize: 11, color: 'rgba(165,180,252,0.6)', marginTop: 3 }}>
+                  {efficiencyMetrics.efficiencyScore >= 80 ? 'Great — letting winners run.' : 'Cutting winners early.'}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Performance Heatmap Widget */}
-        <div className="xl:col-span-3 glass-panel bg-slate-900/40 p-6 md:p-8 rounded-[2rem] border border-white/5 shadow-sm space-y-6">
-          <div className="flex justify-between items-center border-b border-white/5 pb-4">
-            <h2 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
-              <Calendar size={16} className="text-sky-400" /> Performance Heatmap
-            </h2>
-            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Day vs Session</span>
+        {/* Performance Heatmap — full width */}
+        <div className="card-lg" style={{ gridColumn: 'span 3', padding: '18px 20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, paddingBottom: 12, borderBottom: '1px solid var(--border-subtle)' }}>
+            <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-secondary)' }}>Performance Heatmap</div>
+            <span className="section-title">Day vs Session</span>
           </div>
-          <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left border-collapse min-w-[500px]">
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 500 }}>
               <thead>
-                <tr className="border-b border-white/5 text-slate-500 text-[10px] font-bold uppercase tracking-widest">
-                  <th className="pb-3 pr-4 w-24">Day</th>
-                  <th className="pb-3 px-2 text-center w-1/4">London</th>
-                  <th className="pb-3 px-2 text-center w-1/4">New York</th>
-                  <th className="pb-3 px-2 text-center w-1/4">Tokyo</th>
-                  <th className="pb-3 px-2 text-center w-1/4">Sydney</th>
+                <tr>
+                  <th className="table-header" style={{ textAlign: 'left', paddingBottom: 10, paddingRight: 16, fontSize: 10.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-tertiary)' }}>Day</th>
+                  {['London','New York','Tokyo','Sydney'].map(s => <th key={s} className="table-header" style={{ textAlign: 'center', paddingBottom: 10, paddingInline: 6, fontSize: 10.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-tertiary)' }}>{s}</th>)}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
-                {[1, 2, 3, 4, 5].map(day => {
-                  const dayNames = ['Sun', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Sat'];
-                  const sessions = ['LONDON', 'NEW_YORK', 'TOKYO', 'SYDNEY'];
+              <tbody>
+                {[1,2,3,4,5].map(day => {
+                  const dayNames = ['','Mon','Tue','Wed','Thu','Fri'];
                   return (
-                    <tr key={day} className="group">
-                      <td className="py-3 pr-4 font-display font-bold text-slate-400 text-xs uppercase tracking-wider">{dayNames[day]}</td>
-                      {sessions.map(session => {
-                        const cell = heatmapPerformance[day][session];
-                        const hasTrades = cell.total > 0;
-                        const winRate = hasTrades ? (cell.wins / cell.total) * 100 : 0;
-                        
-                        // Determine color intensity based on PnL
-                        let bgColor = 'bg-slate-800/50';
-                        let textColor = 'text-slate-500';
-                        
-                        if (hasTrades) {
-                          if (cell.pnl > 0) {
-                            if (cell.pnl > 500) bgColor = 'bg-emerald-500/40 border border-emerald-500/50';
-                            else if (cell.pnl > 100) bgColor = 'bg-emerald-500/20 border border-emerald-500/30';
-                            else bgColor = 'bg-emerald-500/10 border border-emerald-500/20';
-                            textColor = 'text-emerald-300';
-                          } else if (cell.pnl < 0) {
-                            if (cell.pnl < -500) bgColor = 'bg-rose-500/40 border border-rose-500/50';
-                            else if (cell.pnl < -100) bgColor = 'bg-rose-500/20 border border-rose-500/30';
-                            else bgColor = 'bg-rose-500/10 border border-rose-500/20';
-                            textColor = 'text-rose-300';
-                          } else {
-                            bgColor = 'bg-slate-700 border border-slate-600';
-                            textColor = 'text-slate-300';
-                          }
-                        }
-
+                    <tr key={day}>
+                      <td style={{ paddingRight: 16, paddingBlock: 5, fontSize: 11.5, fontWeight: 600, color: 'var(--text-tertiary)' }}>{dayNames[day]}</td>
+                      {['LONDON','NEW_YORK','TOKYO','SYDNEY'].map(sess => {
+                        const cell = heatmapPerformance[day][sess];
+                        const has = cell.total > 0;
+                        const wr = has ? (cell.wins / cell.total) * 100 : 0;
+                        const bg = !has ? 'var(--surface-2)' : cell.pnl > 0 ? 'rgba(16,185,129,0.08)' : 'rgba(244,63,94,0.08)';
+                        const border = !has ? 'var(--border-subtle)' : cell.pnl > 0 ? 'var(--green-border)' : 'var(--red-border)';
+                        const col = !has ? 'var(--text-muted)' : cell.pnl > 0 ? 'var(--green)' : 'var(--red)';
                         return (
-                          <td key={session} className="p-1.5">
-                            <div className={`h-16 rounded-xl flex flex-col items-center justify-center transition-all ${bgColor}`}>
-                              {hasTrades ? (
+                          <td key={sess} style={{ padding: '4px 6px' }}>
+                            <div style={{ height: 56, borderRadius: 8, background: bg, border: `1px solid ${border}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                              {has ? (
                                 <>
-                                  <span className={`font-display font-bold text-sm ${textColor}`}>
-                                    {cell.pnl > 0 ? '+' : ''}${cell.pnl.toFixed(0)}
-                                  </span>
-                                  <span className="text-[10px] font-bold opacity-70 mt-0.5 text-white">{winRate.toFixed(0)}% WR ({cell.total})</span>
+                                  <span style={{ fontSize: 12, fontWeight: 700, color: col }}>{cell.pnl > 0 ? '+' : ''}${cell.pnl.toFixed(0)}</span>
+                                  <span style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--text-tertiary)', marginTop: 2 }}>{wr.toFixed(0)}% WR ({cell.total})</span>
                                 </>
-                              ) : (
-                                <span className="text-white/10 text-xs font-bold">-</span>
-                              )}
+                              ) : <span style={{ color: 'var(--border-default)', fontSize: 11 }}>—</span>}
                             </div>
                           </td>
                         );
                       })}
                     </tr>
-                  )
+                  );
                 })}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Recent Trades Widget */}
-        <div className="xl:col-span-3 glass-panel bg-slate-900/40 p-6 md:p-8 rounded-[2rem] border border-white/5 shadow-sm">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-sm font-bold text-white uppercase tracking-widest">Recent Trades</h2>
-            <Link to="/journal" className="text-xs font-bold text-indigo-400 hover:text-white transition-colors bg-indigo-500/10 border border-indigo-500/20 px-4 py-1.5 rounded-full uppercase tracking-wider hover:bg-indigo-500/20">View All</Link>
+        {/* Recent Trades — full width */}
+        <div className="card-lg" style={{ gridColumn: 'span 3', padding: '18px 20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, paddingBottom: 12, borderBottom: '1px solid var(--border-subtle)' }}>
+            <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-secondary)' }}>Recent Trades</div>
+            <Link to="/journal" style={{ fontSize: 11.5, fontWeight: 600, color: '#a5b4fc', textDecoration: 'none', background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', padding: '4px 12px', borderRadius: 6 }}>View all →</Link>
           </div>
-          <div className="overflow-x-auto custom-scrollbar">
-            {filteredTrades.length === 0 ? (
-              <div className="py-12 text-center text-slate-500 font-medium text-sm border border-dashed border-white/10 rounded-2xl">No trades found. Go to Journal to log your first trade!</div>
-            ) : (
-              <table className="w-full text-left border-collapse min-w-[600px]">
-                <thead>
-                  <tr className="border-b border-white/5 text-slate-500 text-[10px] font-bold uppercase tracking-widest">
-                    <th className="p-4 pl-4">Pair</th>
-                    <th className="p-4">Direction</th>
-                    <th className="p-4">Result</th>
-                    <th className="p-4 text-right pr-4">Date</th>
+          {filteredTrades.length === 0 ? emptyState('No trades yet. Log your first trade in the Journal.') : (
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 500 }}>
+              <thead><tr>
+                <th className="table-header" style={{ textAlign: 'left' }}>Pair</th>
+                <th className="table-header" style={{ textAlign: 'left' }}>Direction</th>
+                <th className="table-header" style={{ textAlign: 'left' }}>Result</th>
+                <th className="table-header" style={{ textAlign: 'right' }}>Date</th>
+              </tr></thead>
+              <tbody>
+                {filteredTrades.slice(0, 5).map(t => (
+                  <tr key={t.id} className="table-row">
+                    <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{t.pair}</td>
+                    <td><span className={t.direction === 'LONG' ? 'badge badge-green' : 'badge badge-red'}>{t.direction}</span></td>
+                    <td style={{ fontWeight: 700, color: t.pnlUsd != null && t.pnlUsd > 0 ? 'var(--green)' : t.pnlUsd != null && t.pnlUsd < 0 ? 'var(--red)' : 'var(--text-tertiary)' }}>
+                      {t.pnlUsd != null ? `${t.pnlUsd > 0 ? '+' : ''}$${Math.abs(t.pnlUsd).toFixed(2)}` : 'OPEN'}
+                    </td>
+                    <td style={{ textAlign: 'right', color: 'var(--text-tertiary)', fontSize: 12 }}>{new Date(t.openedAt).toLocaleDateString()}</td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {filteredTrades.slice(0, 5).map(trade => (
-                    <tr key={trade.id} className="hover:bg-white/[0.02] transition-colors group">
-                      <td className="p-4 pl-4 font-display font-bold text-white">{trade.pair}</td>
-                      <td className="p-4">
-                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md border ${trade.direction === 'LONG' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'}`}>
-                          {trade.direction}
-                        </span>
-                      </td>
-                      <td className={`p-4 font-display font-bold ${trade.pnlUsd !== null && trade.pnlUsd > 0 ? 'text-emerald-400' : trade.pnlUsd !== null && trade.pnlUsd < 0 ? 'text-rose-400' : 'text-slate-500'}`}>
-                        {trade.pnlUsd !== null ? (trade.pnlUsd > 0 ? `+$${trade.pnlUsd.toFixed(2)}` : `-$${Math.abs(trade.pnlUsd).toFixed(2)}`) : 'OPEN'}
-                      </td>
-                      <td className="p-4 pr-4 text-right text-slate-400 text-xs font-medium">{new Date(trade.openedAt).toLocaleDateString()}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 
-      {/* Expanded Chart Overlay Modal */}
+      {/* Expanded Chart Modal */}
       {isChartExpanded && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xl flex items-center justify-center z-50 p-4 md:p-8 animate-in fade-in duration-300">
-          <div className="bg-slate-900 w-full max-w-5xl rounded-[2rem] shadow-2xl border border-white/10 flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="p-6 md:p-8 border-b border-white/5 flex justify-between items-center glass-panel bg-slate-900/50">
-              <div className="space-y-1">
-                <h3 className="text-xl font-display font-bold text-white tracking-tight flex items-center gap-2">
-                  <TrendingUp className="text-indigo-400" />
-                  <span>Equity Curve (Expanded View)</span>
-                </h3>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Comprehensive Performance Analytics</p>
-              </div>
-              <button 
-                onClick={() => setIsChartExpanded(false)}
-                className="p-2 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer border border-white/5 bg-slate-800"
-              >
-                <X size={20} />
-              </button>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,10,15,0.85)', backdropFilter: 'blur(16px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: 24 }}>
+          <div className="card-lg" style={{ width: '100%', maxWidth: 900, maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>Equity Curve — Expanded</span>
+              <button onClick={() => setIsChartExpanded(false)} className="btn btn-ghost" style={{ padding: '5px 8px' }}><X size={14} /></button>
             </div>
-
-            <div className="p-6 md:p-8 flex-1 overflow-y-auto flex flex-col space-y-6">
-              <div className="h-[400px] w-full bg-slate-950/50 rounded-3xl relative overflow-visible p-6 border border-white/5 flex flex-col justify-end" onMouseLeave={() => setHoveredPoint(null)}>
-                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none p-8 opacity-10">
-                  <div className="border-b border-dashed border-white w-full"></div>
-                  <div className="border-b border-dashed border-white w-full"></div>
-                  <div className="border-b border-dashed border-white w-full"></div>
-                  <div className="border-b border-dashed border-white w-full"></div>
-                  <div className="border-b border-dashed border-white w-full"></div>
-                </div>
-
-                <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full text-indigo-500 overflow-visible relative z-10">
+            <div style={{ padding: '20px 24px', flex: 1, overflowY: 'auto' }}>
+              <div style={{ height: 360, position: 'relative' }} onMouseLeave={() => setHoveredPoint(null)}>
+                <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ width: '100%', height: '100%', color: '#6366f1', overflow: 'visible' }}>
                   <defs>
-                    <linearGradient id="expandedChartGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#6366f1" stopOpacity="0.4"/>
-                      <stop offset="100%" stopColor="#6366f1" stopOpacity="0"/>
+                    <linearGradient id="eqGrad2" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#6366f1" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
                     </linearGradient>
                   </defs>
-                  <path d={`${equityData.pathData} L100,100 L0,100 Z`} fill="url(#expandedChartGradient)" />
-                  <path d={equityData.pathData} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-                  
-                  {equityData.points.map((p, i) => (
-                    <g key={i} onMouseEnter={() => setHoveredPoint(i)}>
-                      <circle cx={p.x} cy={p.y} r="4" fill="transparent" className="cursor-pointer pointer-events-auto" vectorEffect="non-scaling-stroke" />
-                      <circle 
-                        cx={p.x} 
-                        cy={p.y} 
-                        r={hoveredPoint === i ? "5" : "0"} 
-                        className="fill-slate-900 stroke-indigo-400 stroke-2 pointer-events-none transition-all duration-200"
-                        vectorEffect="non-scaling-stroke"
-                      />
-                    </g>
-                  ))}
-                  
-                  {equityData.hasData && (
-                    <>
-                      <circle cx="100" cy={equityData.points[equityData.points.length - 1].y} r="3" className="fill-indigo-400 animate-ping" />
-                      <circle cx="100" cy={equityData.points[equityData.points.length - 1].y} r="2" className="fill-indigo-400 stroke-slate-950 stroke-1" />
-                    </>
-                  )}
+                  <path d={`${equityData.pathData} L100,100 L0,100 Z`} fill="url(#eqGrad2)" />
+                  <path d={equityData.pathData} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
                 </svg>
-
-                {hoveredPoint !== null && (
-                  <div 
-                    className="absolute z-20 glass-panel bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl pointer-events-none transform -translate-x-1/2 -translate-y-full border border-white/10"
-                    style={{ 
-                      left: `calc(1.5rem + ${equityData.points[hoveredPoint].x}% * 0.9)`, 
-                      top: `calc(1.5rem + ${equityData.points[hoveredPoint].y}% * 0.8 - 15px)` 
-                    }}
-                  >
-                    <div className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-1">{equityData.points[hoveredPoint].date}</div>
-                    <div className="text-lg font-display font-bold">Bal: ${equityData.points[hoveredPoint].balance.toFixed(2)}</div>
-                    {equityData.points[hoveredPoint].pnl !== undefined && equityData.points[hoveredPoint].pnl !== 0 && (
-                      <div className={`text-sm font-bold mt-1 ${equityData.points[hoveredPoint].pnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                        {equityData.points[hoveredPoint].pnl > 0 ? "+" : ""}{equityData.points[hoveredPoint].pnl.toFixed(2)}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <div className="absolute inset-x-6 bottom-2 flex justify-between text-[10px] text-slate-500 font-bold uppercase tracking-widest">
-                  {equityData.points.length > 2 ? (
-                    <>
-                      <span>{equityData.points[0].date}</span>
-                      <span>Today</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Start</span>
-                      <span>Today</span>
-                    </>
-                  )}
-                </div>
               </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div className="glass-panel bg-slate-800/40 p-4 rounded-2xl border border-white/5 space-y-1">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Starting Balance</span>
-                  <div className="text-lg font-display font-bold text-white">$10,000.00</div>
-                </div>
-                <div className="glass-panel bg-slate-800/40 p-4 rounded-2xl border border-white/5 space-y-1">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Current Balance</span>
-                  <div className="text-lg font-display font-bold text-indigo-400">${(10000 + metrics.totalPnl).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits:2})}</div>
-                </div>
-                <div className="glass-panel bg-slate-800/40 p-4 rounded-2xl border border-white/5 space-y-1">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Absolute Return</span>
-                  <div className="text-lg font-display font-bold text-indigo-400">+{(metrics.totalPnl / 100).toFixed(2)}%</div>
-                </div>
-                <div className="glass-panel bg-slate-800/40 p-4 rounded-2xl border border-white/5 space-y-1">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Max Drawdown</span>
-                  <div className="text-lg font-display font-bold text-rose-400">-2.3%</div>
-                </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginTop: 16 }}>
+                {[
+                  { label: 'Starting Balance', value: '$10,000.00' },
+                  { label: 'Current Balance', value: `$${(10000 + metrics.totalPnl).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` },
+                  { label: 'Net Profit', value: `${metrics.totalPnl >= 0 ? '+' : ''}$${metrics.totalPnl.toFixed(2)}` },
+                  { label: 'Max Drawdown', value: `${(equityData.maxDrawdownPct || 0).toFixed(1)}%` },
+                ].map(s => (
+                  <div key={s.label} style={{ background: 'var(--surface-2)', borderRadius: 9, padding: '12px 14px' }}>
+                    <div className="section-title" style={{ marginBottom: 4 }}>{s.label}</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>{s.value}</div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -944,3 +649,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

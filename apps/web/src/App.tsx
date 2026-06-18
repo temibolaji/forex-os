@@ -25,173 +25,140 @@ import { useAuthStore } from './store/authStore';
 
 const queryClient = new QueryClient();
 
-// Route Guard Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { currentUser, isLoading } = useAuthStore();
-  
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-0)' }}>
+        <div style={{ width: 28, height: 28, border: '2px solid rgba(99,102,241,0.3)', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
       </div>
     );
   }
-  
   return currentUser ? <>{children}</> : <Navigate to="/auth/login" replace />;
 };
 
-// Layout with Sidebar for Desktop and Bottom Nav for Mobile
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const currentUser = useAuthStore(state => state.currentUser);
   const logout = useAuthStore(state => state.logout);
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/auth/login');
-  };
+  const handleLogout = () => { logout(); navigate('/auth/login'); };
+
+  const navSection = (label: string, links: { to: string; icon: React.ReactNode; label: string }[]) => (
+    <div style={{ marginBottom: 2 }}>
+      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', padding: '12px 12px 5px' }}>{label}</div>
+      {links.map(l => (
+        <NavLink key={l.to} to={l.to} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+          {l.icon} {l.label}
+        </NavLink>
+      ))}
+    </div>
+  );
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-200 font-inter selection:bg-indigo-500/30">
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-[260px] flex-col glass-panel shadow-2xl relative select-none shrink-0 border-r border-white/5 z-20">
-        {/* Modern glow bubble */}
-        <div className="absolute top-0 left-0 w-48 h-48 bg-indigo-500/10 rounded-full blur-[50px] pointer-events-none"></div>
+    <div style={{ display: 'flex', height: '100vh', background: 'var(--surface-0)', fontFamily: 'var(--font-sans)', overflow: 'hidden' }}>
+      {/* ── Desktop Sidebar ── */}
+      <aside className="glass-panel hidden md:flex" style={{ width: 224, flexDirection: 'column', flexShrink: 0, zIndex: 20, userSelect: 'none' }}>
 
-        <div className="p-6 border-b border-white/5 flex items-center space-x-3 relative z-10">
-          <div className="w-9 h-9 rounded-xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30 shadow-sm">
-            <Globe2 size={20} className="text-indigo-400" />
+        {/* Logo */}
+        <div style={{ padding: '16px 14px 13px', display: 'flex', alignItems: 'center', gap: 9, borderBottom: '1px solid var(--border-subtle)' }}>
+          <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Globe2 size={15} style={{ color: '#a5b4fc' }} />
           </div>
-          <span className="font-display font-bold text-xl tracking-wide text-white">ForexOS</span>
+          <span style={{ fontWeight: 700, fontSize: 14.5, letterSpacing: '-0.025em', color: 'var(--text-primary)' }}>ForexOS</span>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto relative z-10 custom-scrollbar">
-          <div className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-3 mt-4 px-3">Trading</div>
-          <NavLink to="/journal" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 ${isActive ? 'bg-indigo-500/15 text-indigo-400 shadow-sm border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
-            <BookOpen size={18} /> <span>Journal</span>
-          </NavLink>
-          <NavLink to="/position-size" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 ${isActive ? 'bg-indigo-500/15 text-indigo-400 shadow-sm border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
-            <Calculator size={18} /> <span>Position Sizer</span>
-          </NavLink>
-          
-          <div className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-3 mt-8 px-3">Tools</div>
-          <NavLink to="/charts" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 ${isActive ? 'bg-indigo-500/15 text-indigo-400 shadow-sm border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
-            <BarChart3 size={18} /> <span>Charts</span>
-          </NavLink>
-          <NavLink to="/playbook" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 ${isActive ? 'bg-indigo-500/15 text-indigo-400 shadow-sm border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
-            <Camera size={18} /> <span>Playbook</span>
-          </NavLink>
-          <NavLink to="/calendar" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 ${isActive ? 'bg-indigo-500/15 text-indigo-400 shadow-sm border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
-            <CalendarIcon size={18} /> <span>Calendar</span>
-          </NavLink>
-          <NavLink to="/sessions" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 ${isActive ? 'bg-indigo-500/15 text-indigo-400 shadow-sm border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
-            <Globe2 size={18} /> <span>Sessions</span>
-          </NavLink>
-          <NavLink to="/checklists" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 ${isActive ? 'bg-indigo-500/15 text-indigo-400 shadow-sm border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
-            <CheckSquare size={18} /> <span>Checklists</span>
-          </NavLink>
-          <NavLink to="/wiki" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 ${isActive ? 'bg-indigo-500/15 text-indigo-400 shadow-sm border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
-            <HelpCircle size={18} /> <span>Wiki</span>
-          </NavLink>
-
-          <div className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-3 mt-8 px-3">Analytics & AI</div>
-          <NavLink to="/dashboard" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 ${isActive ? 'bg-indigo-500/15 text-indigo-400 shadow-sm border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
-            <BarChart3 size={18} /> <span>Dashboard</span>
-          </NavLink>
-          <NavLink to="/routine" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 ${isActive ? 'bg-indigo-500/15 text-indigo-400 shadow-sm border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
-            <CheckSquare size={18} /> <span>Daily Routine</span>
-          </NavLink>
-          <NavLink to="/prop-firm" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 ${isActive ? 'bg-indigo-500/15 text-indigo-400 shadow-sm border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
-            <Trophy size={18} /> <span>Prop Firm</span>
-          </NavLink>
-          <NavLink to="/risk-simulator" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 ${isActive ? 'bg-indigo-500/15 text-indigo-400 shadow-sm border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
-            <TrendingUp size={18} /> <span>Risk Simulator</span>
-          </NavLink>
-          <NavLink to="/macro" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 ${isActive ? 'bg-indigo-500/15 text-indigo-400 shadow-sm border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
-            <Globe2 size={18} /> <span>Macro Edge</span>
-          </NavLink>
-          <NavLink to="/simulator" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 ${isActive ? 'bg-indigo-500/15 text-indigo-400 shadow-sm border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}>
-            <TrendingUp size={18} /> <span>Paper Trading</span>
-          </NavLink>
-          <NavLink to="/coach" className={({isActive}) => `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 mt-4 border ${isActive ? 'bg-indigo-500/20 border-indigo-500/30 text-indigo-300 shadow-md' : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10'}`}>
-            <Bot size={18} /> <span>AI Coach</span>
-          </NavLink>
+        {/* Nav links */}
+        <nav style={{ flex: 1, overflowY: 'auto', padding: '6px 6px' }} className="custom-scrollbar">
+          {navSection('Trading', [
+            { to: '/journal', icon: <BookOpen size={14} />, label: 'Journal' },
+            { to: '/position-size', icon: <Calculator size={14} />, label: 'Position Sizer' },
+          ])}
+          {navSection('Tools', [
+            { to: '/charts', icon: <BarChart3 size={14} />, label: 'Charts' },
+            { to: '/playbook', icon: <Camera size={14} />, label: 'Playbook' },
+            { to: '/calendar', icon: <CalendarIcon size={14} />, label: 'Calendar' },
+            { to: '/sessions', icon: <Globe2 size={14} />, label: 'Sessions' },
+            { to: '/checklists', icon: <CheckSquare size={14} />, label: 'Checklists' },
+            { to: '/wiki', icon: <HelpCircle size={14} />, label: 'Wiki' },
+          ])}
+          {navSection('Analytics', [
+            { to: '/dashboard', icon: <BarChart3 size={14} />, label: 'Dashboard' },
+            { to: '/routine', icon: <CheckSquare size={14} />, label: 'Daily Routine' },
+            { to: '/prop-firm', icon: <Trophy size={14} />, label: 'Prop Firm' },
+            { to: '/risk-simulator', icon: <TrendingUp size={14} />, label: 'Risk Simulator' },
+            { to: '/macro', icon: <Globe2 size={14} />, label: 'Macro Edge' },
+            { to: '/simulator', icon: <TrendingUp size={14} />, label: 'Paper Trading' },
+          ])}
+          {/* AI Coach — special highlight */}
+          <div style={{ padding: '8px 0 4px' }}>
+            <NavLink to="/coach" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+              style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.16)' }}>
+              <Bot size={14} style={{ color: '#a5b4fc' }} /> AI Coach
+            </NavLink>
+          </div>
         </nav>
 
-        {/* User profile details at the bottom of the sidebar */}
+        {/* User footer */}
         {currentUser && (
-          <div className="p-4 border-t border-white/5 bg-slate-900/50 flex flex-col space-y-3 relative z-10 select-none">
-            <div className="flex items-center space-x-3 px-2 py-1">
-              <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 shrink-0 text-slate-300 shadow-sm">
-                <UserIcon size={18} />
+          <div style={{ padding: '10px 8px', borderTop: '1px solid var(--border-subtle)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '5px 6px', marginBottom: 7 }}>
+              <div style={{ width: 26, height: 26, borderRadius: 7, background: 'var(--surface-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <UserIcon size={12} style={{ color: 'var(--text-secondary)' }} />
               </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-display font-bold text-slate-200 leading-none truncate">{currentUser.email.split('@')[0]}</div>
-                <div className="text-[11px] font-medium text-slate-500 mt-1 truncate">{currentUser.email}</div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentUser.email.split('@')[0]}</div>
+                <div style={{ fontSize: 10.5, color: 'var(--text-tertiary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentUser.email}</div>
               </div>
             </div>
-            
-            <div className="flex space-x-2">
-              <NavLink to="/settings" className="flex-1 flex items-center justify-center space-x-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-semibold py-2.5 px-3 rounded-xl transition-all text-xs">
-                <SettingsIcon size={14} />
-                <span>Settings</span>
+            <div style={{ display: 'flex', gap: 5 }}>
+              <NavLink to="/settings" className="btn btn-ghost" style={{ flex: 1, fontSize: 11.5, padding: '6px 8px', gap: 5 }}>
+                <SettingsIcon size={12} /> Settings
               </NavLink>
-              <button 
-                onClick={handleLogout}
-                className="flex items-center justify-center bg-slate-800 hover:bg-rose-500/20 border border-slate-700 hover:border-rose-500/50 text-slate-400 hover:text-rose-400 font-semibold p-2.5 rounded-xl transition-all"
-                title="Sign Out"
-              >
-                <LogOut size={16} />
+              <button onClick={handleLogout} className="btn btn-ghost" title="Sign Out" style={{ padding: '6px 9px', color: 'var(--text-tertiary)' }}>
+                <LogOut size={12} />
               </button>
             </div>
           </div>
         )}
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-20 md:pb-0 relative bg-slate-950">
-        <header className="glass-panel border-b border-white/5 p-4 flex justify-between items-center md:hidden sticky top-0 z-30 shadow-sm">
-          <h1 className="text-xl font-display font-bold text-slate-200 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
-              <Globe2 size={16} className="text-indigo-400" />
+      {/* ── Main content ── */}
+      <main style={{ flex: 1, overflowY: 'auto' }} className="pb-20 md:pb-0">
+        {/* Mobile header */}
+        <header className="md:hidden" style={{ position: 'sticky', top: 0, zIndex: 30, background: 'rgba(10,10,15,0.94)', backdropFilter: 'blur(14px)', borderBottom: '1px solid var(--border-subtle)', padding: '11px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 24, height: 24, borderRadius: 6, background: 'rgba(99,102,241,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Globe2 size={13} style={{ color: '#a5b4fc' }} />
             </div>
-            <span>ForexOS</span>
-          </h1>
+            <span style={{ fontWeight: 700, fontSize: 14.5, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>ForexOS</span>
+          </div>
           {currentUser && (
-            <button 
-              onClick={handleLogout}
-              className="p-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-400 hover:bg-rose-500/10 hover:text-rose-400 transition-colors"
-            >
-              <LogOut size={18} />
+            <button onClick={handleLogout} style={{ background: 'var(--surface-2)', border: '1px solid var(--border-default)', borderRadius: 7, padding: '5px 8px', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex' }}>
+              <LogOut size={14} />
             </button>
           )}
         </header>
         {children}
       </main>
 
-      {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 w-full glass-panel border-t border-white/5 flex justify-around p-2 pb-safe z-40 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.5)] select-none">
-        <NavLink to="/journal" className={({isActive}) => `flex flex-col items-center p-2 transition-colors ${isActive ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300'}`}>
-          <BookOpen size={22} />
-          <span className="text-[10px] mt-1 font-semibold">Journal</span>
-        </NavLink>
-        <NavLink to="/dashboard" className={({isActive}) => `flex flex-col items-center p-2 transition-colors ${isActive ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300'}`}>
-          <BarChart3 size={22} />
-          <span className="text-[10px] mt-1 font-semibold">Stats</span>
-        </NavLink>
-        <NavLink to="/coach" className={({isActive}) => `flex flex-col items-center p-2 transition-colors relative ${isActive ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300'}`}>
-          <div className="absolute top-1.5 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-slate-900"></div>
-          <Bot size={22} />
-          <span className="text-[10px] mt-1 font-semibold">Coach</span>
-        </NavLink>
-        <NavLink to="/calendar" className={({isActive}) => `flex flex-col items-center p-2 transition-colors ${isActive ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300'}`}>
-          <CalendarIcon size={22} />
-          <span className="text-[10px] mt-1 font-semibold">News</span>
-        </NavLink>
-        <NavLink to="/checklists" className={({isActive}) => `flex flex-col items-center p-2 transition-colors ${isActive ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300'}`}>
-          <CheckSquare size={22} />
-          <span className="text-[10px] mt-1 font-semibold">Rules</span>
-        </NavLink>
+      {/* ── Mobile bottom nav ── */}
+      <nav className="md:hidden" style={{ position: 'fixed', bottom: 0, width: '100%', background: 'rgba(10,10,15,0.97)', backdropFilter: 'blur(16px)', borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-around', padding: '7px 0 14px', zIndex: 40 }}>
+        {[
+          { to: '/journal', icon: <BookOpen size={19} />, label: 'Journal' },
+          { to: '/dashboard', icon: <BarChart3 size={19} />, label: 'Stats' },
+          { to: '/coach', icon: <Bot size={19} />, label: 'Coach' },
+          { to: '/calendar', icon: <CalendarIcon size={19} />, label: 'News' },
+          { to: '/checklists', icon: <CheckSquare size={19} />, label: 'Rules' },
+        ].map(l => (
+          <NavLink key={l.to} to={l.to} style={({ isActive }) => ({
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '3px 10px',
+            color: isActive ? '#a5b4fc' : 'var(--text-muted)', textDecoration: 'none', transition: 'color 0.15s'
+          })}>
+            {l.icon}
+            <span style={{ fontSize: 9.5, fontWeight: 600, letterSpacing: '0.02em' }}>{l.label}</span>
+          </NavLink>
+        ))}
       </nav>
     </div>
   );
@@ -199,20 +166,14 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
 
 function App() {
   const checkSession = useAuthStore(state => state.checkSession);
-
-  useEffect(() => {
-    checkSession();
-  }, [checkSession]);
+  useEffect(() => { checkSession(); }, [checkSession]);
 
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
         <Routes>
-          {/* Auth Routes */}
           <Route path="/auth/login" element={<Login />} />
           <Route path="/auth/register" element={<Register />} />
-
-          {/* Secure Private Routes */}
           <Route path="/" element={<Navigate to="/journal" replace />} />
           <Route path="/journal" element={<ProtectedRoute><AppLayout><Journal /></AppLayout></ProtectedRoute>} />
           <Route path="/charts" element={<ProtectedRoute><AppLayout><Charts /></AppLayout></ProtectedRoute>} />
@@ -230,8 +191,6 @@ function App() {
           <Route path="/macro" element={<ProtectedRoute><AppLayout><MacroEdge /></AppLayout></ProtectedRoute>} />
           <Route path="/coach" element={<ProtectedRoute><AppLayout><Coach /></AppLayout></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><AppLayout><Settings /></AppLayout></ProtectedRoute>} />
-
-          {/* Fallback Redirect */}
           <Route path="*" element={<Navigate to="/journal" replace />} />
         </Routes>
       </Router>
