@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Plus, TrendingUp, TrendingDown, Clock, Search, Filter, Calendar, UploadCloud } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Clock, Search, UploadCloud } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useTradeStore } from '../store/tradeStore';
 import CSVImporterModal from '../components/CSVImporterModal';
@@ -9,7 +9,7 @@ export default function Journal() {
   const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL'); // ALL, OPEN, CLOSED
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
   const [dateFilter, setDateFilter] = useState('all_time');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
@@ -151,160 +151,158 @@ export default function Journal() {
     setCloseResult({ pnlUsd: '', pipsResult: '' });
   };
 
+  
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto animate-in fade-in duration-500 font-inter">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <div className="page">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 32, flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <h1 className="text-3xl font-display font-bold text-white tracking-tight">Trade Journal</h1>
-          <p className="text-slate-400 mt-1 font-medium text-sm">Log, analyze, and master your setups.</p>
+          <h1 className="page-title">Trade Journal</h1>
+          <p className="page-subtitle">Log, analyze, and master your setups.</p>
         </div>
         <button
           onClick={() => setIsLogModalOpen(true)}
-          className="flex items-center space-x-2 bg-indigo-500 text-white px-5 py-2.5 rounded-xl shadow-lg shadow-indigo-500/20 hover:bg-indigo-600 transition-all transform hover:-translate-y-0.5 active:translate-y-0 font-bold border border-indigo-400/50"
+          className="btn btn-primary"
+          style={{ borderRadius: 999 }}
         >
-          <Plus size={20} />
+          <Plus size={18} />
           <span>Log Trade</span>
         </button>
       </div>
 
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-3 mb-6">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 24, alignItems: 'center' }}>
+        <div style={{ position: 'relative', flex: '1 1 200px' }}>
+          <Search style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} size={16} />
           <input 
             type="text" 
             placeholder="Search pairs..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 glass-panel bg-slate-900/40 border border-white/10 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm font-medium text-white placeholder-slate-500"
+            className="input"
+            style={{ paddingLeft: 36 }}
           />
         </div>
 
-        {/* Date Filter selector */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-          <div className="flex items-center space-x-2 glass-panel bg-slate-900/40 px-3 py-2.5 border border-white/10 rounded-xl shadow-sm shrink-0 transition-all hover:border-indigo-500/50">
-            <Calendar size={16} className="text-slate-400" />
-            <select 
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="bg-transparent text-slate-200 text-sm font-semibold focus:outline-none cursor-pointer"
-            >
-              <option value="all_time" className="bg-slate-900">All Time</option>
-              <option value="7d" className="bg-slate-900">Last 7 Days</option>
-              <option value="30d" className="bg-slate-900">Last 30 Days</option>
-              <option value="this_year" className="bg-slate-900">This Year</option>
-              <option value="custom" className="bg-slate-900">Custom Range</option>
-            </select>
-          </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <select 
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            className="input"
+            style={{ width: 'auto' }}
+          >
+            <option value="all_time">All Time</option>
+            <option value="7d">Last 7 Days</option>
+            <option value="30d">Last 30 Days</option>
+            <option value="this_year">This Year</option>
+            <option value="custom">Custom Range</option>
+          </select>
           
           {dateFilter === 'custom' && (
-            <div className="flex items-center space-x-1.5 glass-panel bg-slate-900/40 px-2 py-1.5 border border-indigo-500/30 rounded-xl shadow-sm animate-in slide-in-from-left-2 duration-200 ring-1 ring-indigo-500/10">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-tertiary)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '6px 10px' }}>
               <input 
                 type="date" 
                 value={customStartDate}
                 onChange={(e) => setCustomStartDate(e.target.value)}
-                className="px-1.5 py-1 text-xs text-slate-200 bg-slate-900 font-semibold focus:outline-none border border-slate-700 rounded-lg hover:border-indigo-500/50 transition-colors"
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', outline: 'none', fontSize: 13 }}
               />
-              <span className="text-xs text-slate-500 font-bold">to</span>
+              <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>to</span>
               <input 
                 type="date" 
                 value={customEndDate}
                 onChange={(e) => setCustomEndDate(e.target.value)}
-                className="px-1.5 py-1 text-xs text-slate-200 bg-slate-900 font-semibold focus:outline-none border border-slate-700 rounded-lg hover:border-indigo-500/50 transition-colors"
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', outline: 'none', fontSize: 13 }}
               />
             </div>
           )}
-        </div>
 
-        <div className="relative">
-          <button 
-            onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className="flex items-center space-x-2 px-4 py-2.5 glass-panel bg-slate-900/40 border border-white/10 rounded-xl text-slate-200 font-semibold hover:bg-slate-800 shadow-sm transition-all text-sm hover:border-indigo-500/50"
+          <select 
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="input"
+            style={{ width: 'auto' }}
           >
-            <Filter size={18} />
-            <span>{statusFilter === 'ALL' ? 'Filters' : statusFilter}</span>
-          </button>
-          
-          {isFilterOpen && (
-            <div className="absolute right-0 mt-2 w-48 glass-panel bg-slate-900 border border-white/10 rounded-xl shadow-2xl shadow-black/50 z-20 py-2 backdrop-blur-xl">
-              <button onClick={() => { setStatusFilter('ALL'); setIsFilterOpen(false); }} className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-800 transition-colors ${statusFilter === 'ALL' ? 'font-bold text-indigo-400' : 'text-slate-300 font-medium'}`}>All Trades</button>
-              <button onClick={() => { setStatusFilter('OPEN'); setIsFilterOpen(false); }} className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-800 transition-colors ${statusFilter === 'OPEN' ? 'font-bold text-indigo-400' : 'text-slate-300 font-medium'}`}>Open Trades</button>
-              <button onClick={() => { setStatusFilter('CLOSED'); setIsFilterOpen(false); }} className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-800 transition-colors ${statusFilter === 'CLOSED' ? 'font-bold text-indigo-400' : 'text-slate-300 font-medium'}`}>Closed Trades</button>
-            </div>
-          )}
+            <option value="ALL">All Trades</option>
+            <option value="OPEN">Open</option>
+            <option value="CLOSED">Closed</option>
+          </select>
         </div>
       </div>
 
       {/* Trade List */}
-      <div className="glass-panel bg-slate-900/40 rounded-[2rem] shadow-sm border border-white/5 overflow-hidden">
-        <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-white/5 text-slate-500 text-[10px] font-bold uppercase tracking-widest bg-slate-900/20">
-                <th className="p-5 pl-6">Pair</th>
-                <th className="p-5">Direction</th>
-                <th className="p-5">Entry / SL / TP</th>
-                <th className="p-5">Size</th>
-                <th className="p-5">Session</th>
-                <th className="p-5">Result</th>
-                <th className="p-5 pr-6 text-right">Status</th>
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
+            <thead className="table-head">
+              <tr>
+                <th style={{ paddingLeft: 24 }}>Pair</th>
+                <th>Direction</th>
+                <th>Entry / SL / TP</th>
+                <th>Size</th>
+                <th>Session</th>
+                <th>Result</th>
+                <th style={{ textAlign: 'right', paddingRight: 24 }}>Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="table-body">
               {filteredTrades.map((trade) => (
-                <tr key={trade.id} className="hover:bg-white/[0.02] transition-colors group">
-                  <td className="p-4 pl-6">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 rounded-full bg-slate-800 border border-white/5 flex items-center justify-center font-display font-bold text-white text-[10px] tracking-wider leading-tight shadow-inner">
+                <tr key={trade.id} style={{ transition: 'background 0.2s', borderBottom: '1px solid var(--border-subtle)' }}>
+                  <td style={{ paddingLeft: 24 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--bg-tertiary)', border: '1px solid var(--border-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', lineHeight: 1.1 }}>
                         {trade.pair.substring(0, 3)}<br/>{trade.pair.substring(3)}
                       </div>
                       <div>
-                        <div className="font-display font-bold text-white">{trade.pair}</div>
-                        <div className="text-xs text-slate-500 font-medium">{new Date(trade.openedAt).toLocaleDateString()}</div>
+                        <div style={{ fontWeight: 700, fontSize: 15 }}>{trade.pair}</div>
+                        <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{new Date(trade.openedAt).toLocaleDateString()}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="p-4">
-                    <span className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${trade.direction === 'LONG' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'}`}>
-                      {trade.direction === 'LONG' ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-                      <span>{trade.direction}</span>
+                  <td>
+                    <span className={trade.direction === 'LONG' ? 'pill pill-bull' : 'pill pill-bear'}>
+                      {trade.direction === 'LONG' ? <TrendingUp size={12} style={{ marginRight: 4 }} /> : <TrendingDown size={12} style={{ marginRight: 4 }} />}
+                      {trade.direction}
                     </span>
                   </td>
-                  <td className="p-4">
-                    <div className="text-sm font-bold text-slate-200 font-display">{trade.entryPrice}</div>
-                    <div className="text-[10px] font-medium text-slate-500 mt-1 uppercase tracking-wider">SL: {trade.slPrice} • TP: {trade.tpPrice}</div>
+                  <td>
+                    <div style={{ fontWeight: 600, fontSize: 14 }}>{trade.entryPrice}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      SL: {trade.slPrice} • TP: {trade.tpPrice}
+                    </div>
                   </td>
-                  <td className="p-4">
-                    <div className="text-sm font-bold text-slate-200">{trade.lotSize} <span className="text-xs text-slate-500 font-medium ml-0.5">Lots</span></div>
+                  <td>
+                    <div style={{ fontWeight: 600, fontSize: 14 }}>{trade.lotSize} <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500 }}>Lots</span></div>
                   </td>
-                  <td className="p-4">
-                    <span className="inline-flex items-center space-x-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-800/50 border border-white/5 px-2.5 py-1 rounded-md">
-                      <Clock size={12} className="text-slate-500" />
-                      <span>{trade.session.replace('_', ' ')}</span>
+                  <td>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', background: 'var(--bg-tertiary)', padding: '4px 8px', borderRadius: 6, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                      <Clock size={12} />
+                      {trade.session.replace('_', ' ')}
                     </span>
                   </td>
-                  <td className="p-4">
+                  <td>
                     {trade.pnlUsd !== null ? (
                       <div>
-                        <div className={`text-sm font-display font-bold ${trade.pnlUsd > 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                        <div style={{ fontWeight: 700, fontSize: 15, color: trade.pnlUsd > 0 ? 'var(--accent-green)' : 'var(--accent-red)' }}>
                           {trade.pnlUsd > 0 ? '+' : ''}${trade.pnlUsd.toFixed(2)}
                         </div>
-                        <div className="text-[10px] font-medium text-slate-500 uppercase tracking-wider mt-0.5">{trade.pipsResult} pips</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                          {trade.pipsResult} pips
+                        </div>
                       </div>
                     ) : (
-                      <span className="text-slate-500 text-xs font-medium italic">Pending</span>
+                      <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontStyle: 'italic' }}>Pending</span>
                     )}
                   </td>
-                  <td className="p-4 pr-6 text-right">
+                  <td style={{ textAlign: 'right', paddingRight: 24 }}>
                     {trade.status === 'OPEN' ? (
                       <button 
                         onClick={() => setTradeToClose(trade.id)}
-                        className="text-xs font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-4 py-1.5 rounded-xl hover:bg-indigo-500 hover:text-white transition-all shadow-sm"
+                        className="btn btn-ghost"
+                        style={{ border: '1px solid var(--border-strong)', fontSize: 12, padding: '6px 12px' }}
                       >
                         Close Trade
                       </button>
                     ) : (
-                      <span className="text-xs font-bold text-slate-500 bg-slate-800/50 border border-white/5 px-4 py-1.5 rounded-xl uppercase tracking-wider">
+                      <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                         Closed
                       </span>
                     )}
@@ -313,10 +311,8 @@ export default function Journal() {
               ))}
               {filteredTrades.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="p-12">
-                    <div className="mt-8 text-center text-slate-500 text-sm">
-                      No trades logged yet. Start by logging your first trade or import from CSV!
-                    </div>
+                  <td colSpan={7} style={{ padding: 48, textAlign: 'center', color: 'var(--text-secondary)', fontSize: 14 }}>
+                    No trades logged yet. Start by logging your first trade or import from CSV!
                   </td>
                 </tr>
               )}
@@ -329,100 +325,87 @@ export default function Journal() {
 
       {/* Log Trade Modal */}
       {isLogModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xl animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-white/10 rounded-[2rem] shadow-2xl shadow-black/50 w-full max-w-lg p-8 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
-            <h2 className="text-2xl font-display font-bold text-white mb-1">Log a Trade</h2>
-            <p className="text-slate-400 mb-8 text-sm font-medium">Enter the details of your new position.</p>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
+          <div className="card" style={{ width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', padding: 32 }}>
+            <h2 style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.03em', marginBottom: 4 }}>Log a Trade</h2>
+            <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 24 }}>Enter the details of your new position.</p>
             
-            <div className="space-y-5">
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Pair</label>
-                  <input type="text" className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium" value={newTrade.pair} onChange={e => setNewTrade({...newTrade, pair: e.target.value})} placeholder="e.g. EURUSD" />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div style={{ display: 'flex', gap: 16 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>Pair</label>
+                  <input type="text" className="input" value={newTrade.pair} onChange={e => setNewTrade({...newTrade, pair: e.target.value})} placeholder="e.g. EURUSD" />
                 </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Direction</label>
-                  <select className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium cursor-pointer" value={newTrade.direction} onChange={e => setNewTrade({...newTrade, direction: e.target.value})}>
-                    <option value="LONG" className="bg-slate-900">LONG</option>
-                    <option value="SHORT" className="bg-slate-900">SHORT</option>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>Direction</label>
+                  <select className="input" value={newTrade.direction} onChange={e => setNewTrade({...newTrade, direction: e.target.value})}>
+                    <option value="LONG">LONG</option>
+                    <option value="SHORT">SHORT</option>
                   </select>
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-5">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Entry</label>
-                  <input type="number" step="0.00001" className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium" value={newTrade.entryPrice} onChange={e => setNewTrade({...newTrade, entryPrice: e.target.value})} />
+              <div style={{ display: 'flex', gap: 16 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>Entry</label>
+                  <input type="number" step="0.00001" className="input" value={newTrade.entryPrice} onChange={e => setNewTrade({...newTrade, entryPrice: e.target.value})} />
                 </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Stop Loss</label>
-                  <input type="number" step="0.00001" className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium" value={newTrade.slPrice} onChange={e => setNewTrade({...newTrade, slPrice: e.target.value})} />
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>Stop Loss</label>
+                  <input type="number" step="0.00001" className="input" value={newTrade.slPrice} onChange={e => setNewTrade({...newTrade, slPrice: e.target.value})} />
                 </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Take Profit</label>
-                  <input type="number" step="0.00001" className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium" value={newTrade.tpPrice} onChange={e => setNewTrade({...newTrade, tpPrice: e.target.value})} />
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>Take Profit</label>
+                  <input type="number" step="0.00001" className="input" value={newTrade.tpPrice} onChange={e => setNewTrade({...newTrade, tpPrice: e.target.value})} />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Lot Size</label>
-                  <input type="number" step="0.01" className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium" value={newTrade.lotSize} onChange={e => setNewTrade({...newTrade, lotSize: e.target.value})} />
+              <div style={{ display: 'flex', gap: 16 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>Lot Size</label>
+                  <input type="number" step="0.01" className="input" value={newTrade.lotSize} onChange={e => setNewTrade({...newTrade, lotSize: e.target.value})} />
                 </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Session</label>
-                  <select className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium cursor-pointer" value={newTrade.session} onChange={e => setNewTrade({...newTrade, session: e.target.value})}>
-                    <option value="LONDON" className="bg-slate-900">London</option>
-                    <option value="NEW_YORK" className="bg-slate-900">New York</option>
-                    <option value="TOKYO" className="bg-slate-900">Tokyo</option>
-                    <option value="SYDNEY" className="bg-slate-900">Sydney</option>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>Session</label>
+                  <select className="input" value={newTrade.session} onChange={e => setNewTrade({...newTrade, session: e.target.value})}>
+                    <option value="LONDON">London</option>
+                    <option value="NEW_YORK">New York</option>
+                    <option value="TOKYO">Tokyo</option>
+                    <option value="SYDNEY">Sydney</option>
                   </select>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Strategy Tags (comma separated)</label>
-                  <input type="text" className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium" value={newTrade.setupTags} onChange={e => setNewTrade({...newTrade, setupTags: e.target.value})} placeholder="e.g. SMC, Breakout, Pullback" />
+              <div style={{ display: 'flex', gap: 16 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>Strategy Tags</label>
+                  <input type="text" className="input" value={newTrade.setupTags} onChange={e => setNewTrade({...newTrade, setupTags: e.target.value})} placeholder="e.g. SMC, Breakout" />
                 </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Emotion</label>
-                  <select className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium cursor-pointer" value={newTrade.emotion} onChange={e => setNewTrade({...newTrade, emotion: e.target.value})}>
-                    <option value="Neutral" className="bg-slate-900">Neutral / Calm</option>
-                    <option value="Confident" className="bg-slate-900">Confident</option>
-                    <option value="FOMO" className="bg-slate-900">FOMO (Fear of Missing Out)</option>
-                    <option value="Revenge" className="bg-slate-900">Revenge Trading</option>
-                    <option value="Anxious" className="bg-slate-900">Anxious / Stressed</option>
-                    <option value="Tired" className="bg-slate-900">Tired / Unfocused</option>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>Emotion</label>
+                  <select className="input" value={newTrade.emotion} onChange={e => setNewTrade({...newTrade, emotion: e.target.value})}>
+                    <option value="Neutral">Neutral / Calm</option>
+                    <option value="Confident">Confident</option>
+                    <option value="FOMO">FOMO</option>
+                    <option value="Revenge">Revenge</option>
+                    <option value="Anxious">Anxious</option>
+                    <option value="Tired">Tired</option>
                   </select>
                 </div>
-              </div>
-              
-              <div>
-                <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Screenshot URL (TradingView Link)</label>
-                <input type="url" className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium" value={newTrade.screenshotUrl} onChange={e => setNewTrade({...newTrade, screenshotUrl: e.target.value})} placeholder="https://www.tradingview.com/x/..." />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Trade Notes</label>
-                <textarea className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium min-h-[80px] resize-y" value={newTrade.notes} onChange={e => setNewTrade({...newTrade, notes: e.target.value})} placeholder="Why did you take this trade? How did you manage it?"></textarea>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>Notes</label>
+                <textarea className="input" value={newTrade.notes} onChange={e => setNewTrade({...newTrade, notes: e.target.value})} style={{ minHeight: 80 }} placeholder="Why did you take this trade?"></textarea>
               </div>
             </div>
 
-            <div className="flex items-center justify-end space-x-3 w-full mt-8 overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
-              <button 
-                onClick={() => setIsCsvModalOpen(true)}
-                className="flex items-center space-x-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap shadow-sm"
-              >
-                <UploadCloud size={18} />
-                <span>Import CSV</span>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 32 }}>
+              <button onClick={() => setIsCsvModalOpen(true)} className="btn btn-ghost" style={{ marginRight: 'auto' }}>
+                <UploadCloud size={16} style={{ marginRight: 6 }} /> Import CSV
               </button>
-              <button onClick={() => setIsLogModalOpen(false)} className="px-5 py-2.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-bold text-sm">
-                Cancel
-              </button>
-              <button onClick={handleSaveTrade} className="px-5 py-2.5 bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 transition-colors font-bold shadow-lg shadow-indigo-500/20 text-sm">
-                Save Trade
-              </button>
+              <button onClick={() => setIsLogModalOpen(false)} className="btn btn-ghost">Cancel</button>
+              <button onClick={handleSaveTrade} className="btn btn-primary" style={{ borderRadius: 999 }}>Save Trade</button>
             </div>
           </div>
         </div>
@@ -430,27 +413,23 @@ export default function Journal() {
 
       {/* Close Trade Modal */}
       {tradeToClose && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xl animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-white/10 rounded-[2rem] shadow-2xl shadow-black/50 w-full max-w-sm p-8 animate-in zoom-in-95 duration-200">
-            <h2 className="text-2xl font-display font-bold text-white mb-1">Close Trade</h2>
-            <p className="text-slate-400 mb-8 text-sm font-medium">Enter final result of the trade.</p>
-            <div className="space-y-5">
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
+          <div className="card" style={{ width: '100%', maxWidth: 400, padding: 32 }}>
+            <h2 style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.03em', marginBottom: 4 }}>Close Trade</h2>
+            <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 24 }}>Enter final result of the trade.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Final PnL (USD)</label>
-                <input type="number" step="0.01" className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium" value={closeResult.pnlUsd} onChange={e => setCloseResult({...closeResult, pnlUsd: e.target.value})} placeholder="e.g. 150.50 or -50.00" />
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>Final PnL (USD)</label>
+                <input type="number" step="0.01" className="input" value={closeResult.pnlUsd} onChange={e => setCloseResult({...closeResult, pnlUsd: e.target.value})} placeholder="e.g. 150.50" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1.5">Pips Result</label>
-                <input type="number" step="0.1" className="w-full px-4 py-2.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium" value={closeResult.pipsResult} onChange={e => setCloseResult({...closeResult, pipsResult: e.target.value})} placeholder="e.g. 25.5 or -10" />
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>Pips Result</label>
+                <input type="number" step="0.1" className="input" value={closeResult.pipsResult} onChange={e => setCloseResult({...closeResult, pipsResult: e.target.value})} placeholder="e.g. 25.5" />
               </div>
             </div>
-              <div className="flex justify-end space-x-3 mt-8">
-                <button onClick={() => setTradeToClose(null)} className="px-5 py-2.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-bold text-sm">
-                Cancel
-              </button>
-              <button onClick={handleCloseTrade} className="px-5 py-2.5 bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 transition-colors font-bold shadow-lg shadow-indigo-500/20 text-sm">
-                Confirm Close
-              </button>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 32 }}>
+              <button onClick={() => setTradeToClose(null)} className="btn btn-ghost">Cancel</button>
+              <button onClick={handleCloseTrade} className="btn btn-primary" style={{ borderRadius: 999 }}>Confirm Close</button>
             </div>
           </div>
         </div>
