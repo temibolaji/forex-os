@@ -46,11 +46,6 @@
   --radius-xl: 24px;
 }
 
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
 
 /* Remove the 14px root font-size that broke Tailwind's rem scaling! */
 html {
