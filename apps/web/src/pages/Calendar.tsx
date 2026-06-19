@@ -23,7 +23,7 @@ export default function CalendarComponent() {
       try {
         setIsLoading(true);
         // Fetch via Forex Factory public JSON API directly
-        const res = await fetch(`https://nfs.faireconomy.media/ff_calendar_thisweek.json`);
+        const res = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://nfs.faireconomy.media/ff_calendar_thisweek.json')}`);
         if (!res.ok) throw new Error('Failed to fetch calendar');
         const data = await res.json();
         

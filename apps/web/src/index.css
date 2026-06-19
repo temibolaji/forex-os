@@ -130,6 +130,59 @@ body {
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+/* Dashboard & Missing Layout Utilities */
+.stat-card-hero {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 24px 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.alert-danger {
+  background: rgba(255, 69, 58, 0.1);
+  border: 1px solid rgba(255, 69, 58, 0.3);
+  color: var(--accent-red);
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+  text-align: center;
+  background: var(--bg-secondary);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-lg);
 }
 
 .stat-value.bull { color: var(--accent-green); }
@@ -201,6 +254,11 @@ body {
 .pill-bull { background: rgba(48, 209, 88, 0.15); color: var(--accent-green); }
 .pill-bear { background: rgba(255, 69, 58, 0.15); color: var(--accent-red); }
 .pill-accent { background: rgba(10, 132, 255, 0.15); color: var(--accent-blue); }
+
+.pill-gold {
+  background: rgba(255, 159, 10, 0.15);
+  color: var(--accent-orange);
+}
 
 .table-head th {
   font-size: 0.75rem;
